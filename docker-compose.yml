@@ -1,0 +1,62 @@
+version: '3.9'
+services: # 
+  voice: 
+    container_name: vietspeak_bot_voice
+    build: 
+      context: .
+      dockerfile: Dockerfile-voice
+    restart: always
+    ports: 
+      - 9990:3000 #the container use the right port (3000) to communicate with each other.   
+    volumes: 
+      - .:/srv/vietspeak/kiwi
+      - /vietspeak_kiwi_node_modules:/srv/vietspeak/kiwi/node_modules #https://jdlm.info/articles/2019/09/06/
+  kiwi: 
+    container_name: vietspeak_bot_kiwi
+    build: 
+      context: .
+      dockerfile: Dockerfile-kiwi
+    restart: always
+    ports: 
+      - 9900:3000 #the container use the right port (3000) to communicate with each other.   
+    volumes: 
+      - .:/srv/vietspeak/kiwi
+      - /vietspeak_kiwi_node_modules:/srv/vietspeak/kiwi/node_modules #https://jdlm.info/articles/2019/09/06/lessons-building-node-app-docker.html
+    # depends_on:
+    #   - db #the image name "db" should be available so that the image "backend" can run.
+  # db:
+  #   container_name: kiwi__backend-mysql
+  #   image: mysql:5.7.36
+  #   restart: always
+  #   environment:
+  #     MYSQL_DATABASE: ${MYSQL_DATABASE}
+  #     MYSQL_USER: ${MYSQL_USER} #the user "root" is automatically created.
+  #     MYSQL_PASSWORD: ${MYSQL_PASSWORD} #data is set in .env file, it can be set here though. Ref: https://stackoverflow.com/questions/29377853/how-to-use-environment-variables-in-docker-compose
+  #     MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+  #   volumes:
+  #     - mysql_data:/var/lib/mysql 
+  #   ports:
+  #     - 33066:3306 #Open the port 33066 on the host to avoid potential conflict.
+  # adminer:
+  #   container_name: kiwi__backend-mysql-adminer
+  #   image: adminer
+  #   restart: always
+  #   ports:
+  #     - 8880:8080
+  #   #depends_on: #You might not need this one.
+  #     #- db  
+  # phpmyadmin:
+  #   container_name: kiwi__backend-mysql-phpmyadmin
+  #   image: phpmyadmin
+  #   restart: always
+  #   ports:
+  #     - 8888:80
+  #   environment:
+  #     - PMA_ARBITRARY=1    
+#https://jdlm.info/articles/2019/09/06/lessons-building-node-app-docker.html
+volumes:
+  # Be aware of node_modules when you want to install new npm package. You might need to remove this module with docker-compose down -v when rebuild the image WHEN you install new dependency in npm.  
+  vietspeak_kiwi_node_modules:  #!!!REMOVE this volume when you update dependencies. Put at the BOTTOM of the yml file: fix empty node_modules on container https://github.com/jdleesmiller/docker-chat-demo/blob/master/docker-compose.yml
+  #mysql_data: #Store mysql database
+
+

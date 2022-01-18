@@ -1,0 +1,11 @@
+{
+  "name": "vietspeak-bot",
+  "version": "1.0.0",
+  "description": "VietSpeak Bot ",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Vuong Nguyen",
+  "license": "ISC"
+}
