@@ -1837,13 +1837,12 @@ app.event(
   }
 );
 
-
 //============================================ Ending task ============================================
 function getRandomQuoteEndingTask(Randomeindex) {
   return `Quote for another chapter of VietSpeak: _${quote[Randomeindex].quoteText}_ - *${quote[Randomeindex].quoteAuthor}*`;
 }
 
-async function postMessage(currentTask) {
+async function postMessageEndingTask(currentTask) {
   let audioPost = channel_2_hook;
   let dataSentObject = {
     text:
@@ -1862,6 +1861,19 @@ async function postMessage(currentTask) {
       console.log(error);
     });
 }
+
+const ruleEndingTask = new schedule.RecurrenceRule();
+ruleEndingTask.second = 0;
+ruleEndingTask.minute = 0;
+ruleEndingTask.hour = 0;
+ruleEndingTask.date = [1, 11, 21];
+ruleEndingTask.tz = "Asia/Ho_Chi_Minh";
+
+let currentTask = 63;
+
+const jobEndingTask = schedule.scheduleJob(ruleEndingTask, function () {
+  postMessageEndingTask(currentTask);
+});
 
 /*======================== trigger event  =====================================================*/
 
