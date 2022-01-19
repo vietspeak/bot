@@ -1,6 +1,6 @@
 ## VietSpeak
 
-VietSpeak is a non-profit community where people, mostly Vietnamese, learn English through audio recording (indirect communication) and voice chatting (direct communication). Providing a community driven academic but friendly study virtual space, VietSpeak leverages free services such as Slack, AirTable, Google Excel, Google Meet, Kadi AI among others. 
+VietSpeak is a non-profit community where people, mostly Vietnamese, learn English through audio recording (indirect communication) and voice chatting (direct communication). Providing a community driven academic but friendly virtual space, VietSpeak leverages free services such as Slack, AirTable, Google Excel, Google Meet, Kadi AI among others. 
 
 ## Bots at VietSpeak
 
