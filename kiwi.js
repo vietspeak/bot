@@ -28,6 +28,7 @@ const slack_kiwi_token_user_vietspeakbank =
 const airtable_api_key = process.env.AIRTABLE_API_KEY;
 
 const channel_2_hook = process.env.KIWI_TOKEN_CLIENT_CHANNEL_2_HOOK;
+
 // ============================================================
 const client = new WebClient(slack_kiwi_token_client, {
   logLevel: LogLevel.DEBUG,
@@ -82,26 +83,56 @@ const app = new App({
 let randomIndex = function (max) {
   return Math.floor(Math.random() * max);
 };
+app.message(
+  /^(hi|hello|hey|Hi|Hello|Hey)+/,
+  async ({ body, event, context, client, message }) => {
+    let {
+      user,
+      ts,
+      text,
+      thread_ts,
+      channel,
+      channel_type,
+      bot_id,
+      parent_user_id,
+    } = message;
 
-// app.message(/^(hi|hello|hey|Hi|Hello|Hey)+/, async ({message, context, say }) => {
-//   const greeting = context.matches[0];
+    if (typeof channel_type === "undefined") {
+      console.log("không có channel_type");
+      return;
+    }
 
-//   const sayGreetings = [
-//   `how are you ? `,
-//   `bạn có khỏe hông?! `,
-//   `what's up?`,
-//   `nice to see you here! `,
-//   `how is it going?`,
-//   `tui biết xài tiếng Việt nha.! `,
-//   `hế nhô hế nhô!`,
-//   `chúc một ngày tốt lành nha!`
-//   ];
+    //Only send the reply in im
+    if (channel_type !== "im") {
+      return;
+    }
 
-//   let randomsayGreetings = sayGreetings[randomIndex(sayGreetings.length)];
+    const greeting = context.matches[0];
+    const sayGreetings = [
+      `how are you ? `,
+      `bạn có khỏe hông?! `,
+      `what's up?`,
+      `nice to see you here! `,
+      `how is it going?`,
+      `tui biết xài tiếng Việt nha.! `,
+      `hế nhô hế nhô!`,
+      `chúc một ngày tốt lành nha!`,
+    ];
 
-//   await say(`${greeting} <@${message.user}>, ${randomsayGreetings}`);
+    let randomsayGreetings = sayGreetings[randomIndex(sayGreetings.length)];
 
-// });
+    let botReplyGreeting = `${greeting} <@${message.user}>, ${randomsayGreetings}`;
+
+    try {
+      const result = await client.chat.postMessage({
+        channel: user,
+        text: botReplyGreeting,
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  }
+);
 
 // app.message(/^(thank|Thank|thanks|Thanks|THANK|THANKS)+/, async ({ message, say }) => {
 //   const thanks = [
