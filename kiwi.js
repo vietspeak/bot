@@ -778,7 +778,7 @@ async function getAudioFile(fileUrl) {
   });
 }
 
-let listenningChallengesChannel = "C01CDAFCQ3B"; //"G01BPHWQ023"; (ban thong tin)
+let listenningChallengesChannel = "C01CDAFCQ3B"; 
 
 async function postSpelling() {
   try {
@@ -806,16 +806,11 @@ async function postSpelling() {
 
     let random = Math.floor(Math.random() * welcomeMessageList.length);
     let randomwelcomeMessageList = welcomeMessageList[random];
-
     let thecomment = `${randomwelcomeMessageList} - Luyện tập tổng hợp cùng Spelling bee số ${number}`;
-
-    //let thecomment = `${randomwelcomeMessageList} - WELCOME TO câu lạc bộ 3700 - spelling bee số ${number}`;
-
     const file = "audio.mp3";
     const result = await client.files.upload({
-      channels: listenningChallengesChannel, //----> channels có s khi up load file
-      //   thread_ts: thread_ts,
-      filename: uuidv4(),
+      channels: listenningChallengesChannel, //----> channels có s khi up load file      
+      filename: uuidv4() + ".mp3",
       initial_comment: thecomment,
       file: fs.createReadStream(file),
     });
