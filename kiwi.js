@@ -1583,7 +1583,6 @@ app.event("message", async ({ body, event, context, client, message, say }) => {
   //end of xóa
 });
 
-////////////////////////////
 
 ///////////////////////////GỬI IPA AUDIO////////////////////////////////
 
@@ -1691,7 +1690,7 @@ app.event("message", async ({ body, event, context, client, message, say }) => {
       const result = await client.files.upload({
         channels: channel, //----> channels có s khi up load file
         thread_ts: destination,
-        filename: words,
+        filename: `${words}.mp3`,
         file: fs.createReadStream(file),
       });
       //   console.log(result);
