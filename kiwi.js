@@ -670,7 +670,7 @@ async function getSpelling(indexID) {
     const AirTable = [
       1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21,
       22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39,
-      40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51
+      40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51,
     ];
     const lengthAirTable = AirTable.length;
     randomIndex = Math.ceil(Math.random() * lengthAirTable);
@@ -778,7 +778,7 @@ async function getAudioFile(fileUrl) {
   });
 }
 
-let listenningChallengesChannel = "C01CDAFCQ3B"; 
+let listenningChallengesChannel = "C01CDAFCQ3B";
 
 async function postSpelling() {
   try {
@@ -809,7 +809,7 @@ async function postSpelling() {
     let thecomment = `${randomwelcomeMessageList} - Luyện tập tổng hợp cùng Spelling bee số ${number}`;
     const file = "audio.mp3";
     const result = await client.files.upload({
-      channels: listenningChallengesChannel, //----> channels có s khi up load file      
+      channels: listenningChallengesChannel, //----> channels có s khi up load file
       filename: uuidv4() + ".mp3",
       initial_comment: thecomment,
       file: fs.createReadStream(file),
@@ -1583,7 +1583,6 @@ app.event("message", async ({ body, event, context, client, message, say }) => {
   //end of xóa
 });
 
-
 ///////////////////////////GỬI IPA AUDIO////////////////////////////////
 
 app.event("message", async ({ body, event, context, client, message, say }) => {
@@ -1867,8 +1866,12 @@ function getRandomQuoteEndingTask(Randomeindex) {
   return `Quote for another chapter of VietSpeak: _${quote[Randomeindex].quoteText}_ - *${quote[Randomeindex].quoteAuthor}*`;
 }
 
-async function postMessageEndingTask(currentTask) {
+async function postMessageEndingTask() {
   let audioPost = channel_2_hook;
+  let res = await axios("https://api.vietspeak.org/v1/task/currenttask.php");
+  let task = await res.data;
+  let currentTask = task[0].fields.lastestTask;
+
   let dataSentObject = {
     text:
       " *`=======🔥🔥🔥TASK ENDED🔥🔥🔥=======`* \nNhững bài nộp sau thanh này sẽ tính là không nộp bài cho task " +
@@ -1894,10 +1897,8 @@ ruleEndingTask.hour = 0;
 ruleEndingTask.date = [1, 11, 21];
 ruleEndingTask.tz = "Asia/Ho_Chi_Minh";
 
-let currentTask = 63;
-
 const jobEndingTask = schedule.scheduleJob(ruleEndingTask, function () {
-  postMessageEndingTask(currentTask);
+  postMessageEndingTask();
 });
 
 /*======================== trigger event  =====================================================*/
