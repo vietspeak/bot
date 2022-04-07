@@ -14,6 +14,7 @@ let Slack_DOWNLOAD_TOKEN = process.env.Slack_DOWNLOAD_TOKEN;
 let AirTable_Api_key = process.env.AirTable_Api_key
 let MICROSOFT_Text_to_Speech_token = process.env.MICROSOFT_Text_to_Speech_token
 let MICROSOFT_TRANSLATION_token = process.env.MICROSOFT_TRANSLATION_token;
+let WEATHER_API = process.env.WEATHER_API
 
 // ====================================================================
 const {
@@ -87,15 +88,15 @@ const {
 
 const client = new WebClient(
   Slack_KIWI_Client_token, {
-    logLevel: LogLevel.DEBUG,
-  }
+  logLevel: LogLevel.DEBUG,
+}
 );
 
 // dùng để gọi chat.delete API với token của user
 const clientUser = new WebClient(
   Slack_KIWI_UserClient_token, {
-    logLevel: LogLevel.DEBUG,
-  }
+  logLevel: LogLevel.DEBUG,
+}
 );
 
 // ============================================================
@@ -166,21 +167,20 @@ app.message(
       ts,
       text,
       thread_ts,
+      subtype,
       channel,
       channel_type,
       bot_id,
       parent_user_id,
     } = message;
 
-    if (typeof channel_type === "undefined") {
-      console.log("không có channel_type");
+    if (onlyHandleIfIM(channel_type) ||
+      onlyHandleIfNotDeletingEvent(subtype)
+    ) {
       return;
     }
 
-    if (onlyHandleIfIM(channel_type)) return;
-
     const greeting = context.matches[0];
-
     const sayGreetings = [
       `how are you ? `,
       `bạn có khỏe hông?! `,
@@ -207,147 +207,356 @@ app.message(
   }
 );
 
-// app.message(/^(thank|Thank|thanks|Thanks|THANK|THANKS)+/, async ({ message, say }) => {
-//   const thanks = [
-//   `You are welcome <@${message.user}>! `,
-//   `Hông có chi <@${message.user}>! `,
-//   `Chiện nhỏ á <@${message.user}>! `,
-//   `Okey bro <@${message.user}>! `,
-//   `Sure <@${message.user}>! `,
-//   `No worry <@${message.user}>! `,
-//   ];
-//   await say(thanks[randomIndex(thanks.length)]);
-// });
+app.message(
+  /^(thank|Thank|thanks|Thanks|THANK|THANKS)+/,
+  async ({
+    body,
+    event,
+    context,
+    client,
+    message
+  }) => {
+    let {
+      user,
+      ts,
+      text,
+      thread_ts,
+      subtype,
+      channel,
+      channel_type,
+      bot_id,
+      parent_user_id,
+    } = message;
 
-// app.message(/^(v|V)+/, async ({ message, say }) => {
-//   fs.readFile('data/gre-vocabulary.json', 'utf8' , async(err, data) => {
-//     if (err) {
-//       console.error(err)
-//       return
-//     }
-//     const databases = JSON.parse(data);
-//     let random = Math.floor(Math.random()*databases.length);
-//     let word = `*${databases[random].word}* - /${databases[random].pronunciation}/ - *Synonyms:* ${databases[random].synonyms}- *Meaning:* ${databases[random].definition} - *Example: * ${databases[random].passage}`;
-//     await say(word);
-//   })
+    if (onlyHandleIfIM(channel_type) ||
+      onlyHandleIfNotDeletingEvent(subtype)
+    ) {
+      return;
+    }
 
-// });
+    const greeting = context.matches[0];
+    const thanks = [
+      `You are welcome <@${message.user}>! `,
+      `Hông có chi <@${message.user}>! `,
+      `Chiện nhỏ á <@${message.user}>! `,
+      `Okey bro <@${message.user}>! `,
+      `Sure <@${message.user}>! `,
+      `No worry <@${message.user}>! `,
+    ];
+
+    let randomsayThanks = thanks[randomIndex(thanks.length)];
+    let botReplyThanks = `${greeting} <@${message.user}>, ${randomsayThanks}`;
+    try {
+      const result = await client.chat.postMessage({
+        channel: user,
+        text: botReplyThanks,
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  }
+);
+
+app.message(/^(v|V)+/, async ({ message, say }) => {
+  let {
+    user,
+    ts,
+    text,
+    thread_ts,
+    subtype,
+    channel,
+    channel_type,
+    bot_id,
+    parent_user_id,
+  } = message;
+
+  if (onlyHandleIfIM(channel_type) ||
+    onlyHandleIfNotDeletingEvent(subtype)
+  ) {
+    return;
+  }
+
+  fs.readFile('data/gre-vocabulary.json', 'utf8', async (err, data) => {
+    if (err) {
+      console.error(err)
+      return
+    }
+    const databases = JSON.parse(data);
+    let random = Math.floor(Math.random() * databases.length);
+    let word = `*${databases[random].word}* - /${databases[random].pronunciation}/ - *Synonyms:* ${databases[random].synonyms}- *Meaning:* ${databases[random].definition} - *Example: * ${databases[random].passage}`;
+
+    try {
+      const result = await client.chat.postMessage({
+        channel: user,
+        text: word,
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  })
+});
+
+// ==============================weather ==============================
+app.message(/(w|W)\s[a-zA-Z]+/, async ({ context, body, message, say }) => {
+
+  let {
+    user,
+    ts,
+    text,
+    thread_ts,
+    subtype,
+    channel,
+    channel_type,
+    bot_id,
+    parent_user_id,
+  } = message;
+
+  if (onlyHandleIfIM(channel_type) ||
+    onlyHandleIfNotDeletingEvent(subtype)
+  ) {
+    return;
+  }
 
 
-// app.message(/(w|W)\s[a-zA-Z]+/, async ({context, body, message, say }) => {
+  let textInput = body.event.text;
+  let location = text.split(" ")[1].toLowerCase();
 
-//   let textInput = body.event.text;
-//   let location = textInput.split(" ")[1].toLowerCase();
-//   if(location === "hochiminh"){
-//     location = "saigon";
-//   }
+  if (location === "hochiminh") {
+    location = "saigon";
+  }
 
-//   if(location === "sg"){
-//     location = "saigon";
-//   }
+  if (location === "sg") {
+    location = "saigon";
+  }
 
-//   if(location === "hcm"){
-//     location = "saigon";
-//   }
+  if (location === "hcm") {
+    location = "saigon";
+  }
 
-//   if(location === "hue"){
-//     location = "hue-vietnam";
-//   }
+  if (location === "hue") {
+    location = "hue-vietnam";
+  }
 
-//   if(location === "danang"){
-//     location = "da nang";
-//   }
+  if (location === "danang") {
+    location = "da nang";
+  }
 
-//   if(location === "phanthiet"){
-//     location = "phan thiet";
-//   }
+  if (location === "phanthiet") {
+    location = "phan thiet";
+  }
 
-//   if(location === "quangtri"){
-//     location = "quang tri";
-//   }
+  if (location === "quangtri") {
+    location = "quang tri";
+  }
 
-//   if(location === "dongnai"){
-//     location = "dong nai";
-//   }
-//   let urlWeatherAPI = `https://api.weatherapi.com/v1/current.json?key=c954edb2c4774a4f9e383953212305&q=${location}`;
-//   async function getUser() {
-//     try {
-//       const response =     axios.get(urlWeatherAPI);
-//       let locationResponse = `${response.data.location.name} - ${response.data.location.country}`;
-//       let condition = response.data.current.condition.text;
-//       let updated = response.data.current.last_updated;
-//       let tempc = response.data.current.temp_c;
-//       let tempf = response.data.current.temp_f;
-//       let humidity = response.data.current.humidity;
-//       let feelslikeC = response.data.current.feelslike_c;
-//       let feelslikeF = response.data.current.feelslike_f;
+  if (location === "dongnai") {
+    location = "dong nai";
+  }
+  let urlWeatherAPI = `https://api.weatherapi.com/v1/current.json?key=${WEATHER_API}&q=${location}`;
 
-//         // console.log(response);
-//         let weatherResponse = `The weather condition in ${locationResponse}: \n
-//         *Temperature*: ${tempc}C/${tempf}F \n
-//         *Feel like*: ${feelslikeC}C/${feelslikeF}F \n
-//         *Overall*: ${condition} \n
-//         *Humidity*: ${humidity} \n
-//         *Updated*: ${updated}
-//         `;
-//         // console.log(weatherResponse)
-//         await say(weatherResponse);
-//       } catch (error) {
-//         console.error(error);
-//       }
-//     }
-//     getUser();
+  async function geWeather() {
+    try {
+      const response = await axios.get(urlWeatherAPI);
+      let locationResponse = `${response.data.location.name} - ${response.data.location.country}`;
+      let condition = response.data.current.condition.text;
+      let updated = response.data.current.last_updated;
+      let tempc = response.data.current.temp_c;
+      let tempf = response.data.current.temp_f;
+      let humidity = response.data.current.humidity;
+      let feelslikeC = response.data.current.feelslike_c;
+      let feelslikeF = response.data.current.feelslike_f;
 
-//   });
+      // console.log(response);
+      let weatherResponse = `The weather condition in ${locationResponse}: \n
+        *Temperature*: ${tempc}C/${tempf}F \n
+        *Feel like*: ${feelslikeC}C/${feelslikeF}F \n
+        *Overall*: ${condition} \n
+        *Humidity*: ${humidity} \n
+        *Updated*: ${updated}
+        `;
+
+      const result = await client.chat.postMessage({
+        channel: user,
+        text: weatherResponse,
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  geWeather();
+
+});
+
+// ==============================fact===============================
+app.message(/^(f|F|ff|Ff|FF)+/, async ({ message, say }) => {
+  let {
+    user,
+    ts,
+    text,
+    thread_ts,
+    subtype,
+    channel,
+    channel_type,
+    bot_id,
+    parent_user_id,
+  } = message;
+
+  if (onlyHandleIfIM(channel_type) ||
+    onlyHandleIfNotDeletingEvent(subtype)
+  ) {
+    return;
+  }
+
+  let words = funFact(randomIndex(factCount))
+
+  try {
+    const result = await client.chat.postMessage({
+      channel: user,
+      text: words,
+    });
+  } catch (error) {
+    console.error(error);
+  }
+
+});
+
+// ==============================quote===============================
+app.message(/^(q|Q|quote|Quote)+/, async ({ message, say }) => {
+  let {
+    user,
+    ts,
+    text,
+    thread_ts,
+    subtype,
+    channel,
+    channel_type,
+    bot_id,
+    parent_user_id,
+  } = message;
+
+  if (onlyHandleIfIM(channel_type) ||
+    onlyHandleIfNotDeletingEvent(subtype)
+  ) {
+    return;
+  }
+
+  let words = getRandomQuote(randomIndex(quoteCount))
+
+  try {
+    const result = await client.chat.postMessage({
+      channel: user,
+      text: words,
+    });
+  } catch (error) {
+    console.error(error);
+  }
+
+});
+
+// ==============================story===============================
+app.message(/^(s|S|story|Story)+/, async ({ message, say }) => {
+  let {
+    user,
+    ts,
+    text,
+    thread_ts,
+    subtype,
+    channel,
+    channel_type,
+    bot_id,
+    parent_user_id,
+  } = message;
+
+  if (onlyHandleIfIM(channel_type) ||
+    onlyHandleIfNotDeletingEvent(subtype)
+  ) {
+    return;
+  }
+
+  let words = getRandomStories(randomIndex(storiesCount))
+
+  try {
+    const result = await client.chat.postMessage({
+      channel: user,
+      text: words,
+    });
+  } catch (error) {
+    console.error(error);
+  }
+
+});
 
 
-// app.message(/^(f|F|ff|Ff|FF)+/, async ({ message, say }) => {
-//   await say(funFact(randomIndex(factCount)));
-// });
 
-// app.message(/^(q|Q|quote|Quote)+/, async ({ message, say }) => {
-//   await say(getRandomQuote(randomIndex(quoteCount)));
-// });
 
-// app.message(/^(s|S|story|Story)+/, async ({ message, say }) => {
-//   await say(getRandomStories(randomIndex(storiesCount)));
-// });
+app.message(/^(j|J|joke|Joke)+/, async ({ message, say }) => {
+  let {
+    user,
+    ts,
+    text,
+    thread_ts,
+    subtype,
+    channel,
+    channel_type,
+    bot_id,
+    parent_user_id,
+  } = message;
 
-// app.message(/^(j|J|joke|Joke)+/, async ({ message, say }) => {
-//   let jokeFetched = joke[randomIndex(jokeLength)];
-//   let jokeSetup = jokeFetched.setup;
-//   let jokePunchline = jokeFetched.punchline;
+  if (onlyHandleIfIM(channel_type) ||
+    onlyHandleIfNotDeletingEvent(subtype)
+  ) {
+    return;
+  }
 
-//   await say(`
-//     *-* ${jokeSetup}\n *-* ${jokePunchline}
-//     `);
-// });
+  let jokeFetched = joke[randomIndex(jokeLength)];
+  let jokeSetup = jokeFetched.setup;
+  let jokePunchline = jokeFetched.punchline;
+  let words = `*-* ${jokeSetup}\n *-* ${jokePunchline}`
 
-// Listens to incoming messages that contain "hello"
+  try {
+    const result = await client.chat.postMessage({
+      channel: user,
+      text: words,
+    });
+  } catch (error) {
+    console.error(error);
+  }
 
-// app.message(/(^(help|Help|HELP|h|H)$)+/, async ({ message, say }) => {
-//   await say(
-//   {
-//     "blocks": [
-//     {
-//       "type": "section",
-//       "text": {
-//         "type": "plain_text",
-//         "text": "Hi there, welcome to KIWI - another Vietspeak Bot.",
-//         "emoji": true
-//       }
-//     },
-//     {
-//       "type": "section",
-//       "text": {
-//         "type": "mrkdwn",
-//         "text": "\n 1) Type *`d love`* to check the dictionary of the word `love`.\n 2) Type *`v`* to receive a random GRE vocabulary. \n 3) Type *`f`* to receive a random fun fact. \n 4) Type *`j`* to receive a random joke. \n 5) Type *`q`* to receive a random quote. \n 6) Type *`w x`* to receive a x' weather condition. Try *`w saigon`*.\n 7) Type *`h`* to receive help. Here you are. \n 8) Type *`s`* to receive a random story written by Aesop. Enjoy reading!. \n 9) Type *`e`* or *`e0`* (newest), *`e1`* etc...to receive a random article published by Economist. Enjoy reading!. \n 10) Say *`hi`*, *`hello`* or *`thanks`* if you wish. \n"
-//       }
-//     }
-//     ]
-//   }
-//   );
-// });
+});
+
+
+app.message(/(^(help|Help|HELP|h|H)$)+/, async ({ message, say }) => {
+  let {
+    user,
+    ts,
+    text,
+    thread_ts,
+    subtype,
+    channel,
+    channel_type,
+    bot_id,
+    parent_user_id,
+  } = message;
+
+  if (onlyHandleIfIM(channel_type) ||
+    onlyHandleIfNotDeletingEvent(subtype)
+  ) {
+    return;
+  }
+
+  let words = `1) Type *\`d love\`* to check the dictionary of the word \`love\`.\n 2) Type *\`v\`* to receive a random GRE vocabulary. \n 3) Type *\`f\`* to receive a random fun fact. \n 4) Type *\`j\`* to receive a random joke. \n 5) Type *\`q\`* to receive a random quote. \n 6) Type *\`w x\`* to receive a x' weather condition. Try *\`w saigon\`*.\n 7) Type *\`h\`* to receive help. Here you are. \n 8) Type *\`s\`* to receive a random story written by Aesop. Enjoy reading!. \n 9) Type *\`e\`* .to receive a random article published by Economist. Enjoy reading!. \n 10) Type *\`hi\`*, *\`hello\`* or *\`thanks\`* if you wish. \n 11) Type *\`me\`*, to set up your profile. \n 12) Type *\`follow\`* or *\`unfollow\`* and mention the users you want to follow or unfollow. \n 13) Click on the bouque icon to receive the mark of the current audio.\n 14) Send *\`"vi English setence"\`* to translate English to Vietnamese.\n 15) Send *\`"en xin chào"\`* to translate Vietnamese to English.\n 16) Send *\`"visound  xin chào"\`* to convert text to Vietnamese speech.\n 17) Send *\`"ensound hello world"\`* to convert text to English speech.\n 18) Send *\`"me_yourid"\`* to set up your own anonymous ID.\n 19) Type *\`"thanos"\`* in the thread created by you to eliminate the whole thread.\n 20) Type your transcript in the channel #8 to receive your mark when listening to the audio.\n 21) Type *\`"bee"\`* when you want to receive the transcript.`
+
+  try {
+    const result = await client.chat.postMessage({
+      channel: user,
+      text: words,
+    });
+  } catch (error) {
+    console.error(error);
+  }
+
+});
 
 async function getDictionary(wordCheck) {
   let urlDict = `https://api.dictionaryapi.dev/api/v2/entries/en/${wordCheck}`;
@@ -403,14 +612,40 @@ async function getDictionary(wordCheck) {
   return finalmeaningReturn;
 }
 
-//getDictionary("love");
 
-// app.message(/^(d|D)\s[a-zA-Z]+/, async ({ message, body, say }) => {
-//   let textInput = body.event.text;
-//   let wordToCheck = textInput.split(" ")[1].toLowerCase();
-//   let dataReturn = await getDictionary(wordToCheck);
-//   await say(dataReturn)
-// });
+app.message(/^(d|D)\s[a-zA-Z]+/, async ({ body, message, say }) => {
+  let {
+    user,
+    ts,
+    text,
+    thread_ts,
+    subtype,
+    channel,
+    channel_type,
+    bot_id,
+    parent_user_id,
+  } = message;
+
+  if (onlyHandleIfIM(channel_type) ||
+    onlyHandleIfNotDeletingEvent(subtype)
+  ) {
+    return;
+  }
+
+  let textInput = body.event.text;
+  let wordToCheck = textInput.split(" ")[1].toLowerCase();
+  let dataReturn = await getDictionary(wordToCheck);
+
+  try {
+    const result = await client.chat.postMessage({
+      channel: user,
+      text: dataReturn,
+    });
+  } catch (error) {
+    console.error(error);
+  }
+
+});
 
 
 //======================================================nytimes ======================================================
@@ -436,12 +671,42 @@ async function getItem(index) {
   return news;
 }
 
-// app.message(/^(n|N|news|News)+/, async ({ message, body, say }) => {
-//   let dataReturnNYT = await getItem(randomIndex(10));
-//   await say(dataReturnNYT)
-// });
-
 //=========================nytimes========================================================
+app.event("message", async ({ message, say }) => {
+  let {
+    user,
+    ts,
+    text,
+    thread_ts,
+    subtype,
+    channel,
+    channel_type,
+    bot_id,
+    parent_user_id,
+  } = message;
+
+  if (onlyHandleIfIM(channel_type) ||
+    onlyHandleIfNotDeletingEvent(subtype)
+  ) {
+    return;
+  }
+
+  text = text.trim().toLowerCase();
+
+  if (text !== "ny") return;
+
+  let dataReturnNYT = await getItem(randomIndex(10));
+
+  try {
+    const result = await client.chat.postMessage({
+      channel: user,
+      text: dataReturnNYT,
+    });
+  } catch (error) {
+    console.error(error);
+  }
+
+});
 
 
 // ======================== economist =====================================================
@@ -452,6 +717,9 @@ let totalItem = 100;
 
 async function getEconomistExplain(url) {
   const economistResponse = await axios.get(url);
+
+  console.log(economistResponse)
+
   let objectURL = economistResponse.data.channel.item;
   return {
     objectURL
@@ -636,51 +904,6 @@ async function getIPA(wordInput) {
   let phonetic = dictResponse.data[0].phonetic;
   return phonetic;
 }
-
-// app.event('app_mention', async ({body, event, context, client, message, say }) => {
-//   console.log(event)
-
-//   let {client_msg_id, text, user, ts, team, thread_ts, parent_user_id, channel, events_ts} =  event;
-
-//   let phoneticResult;
-//   let lastWord;
-//   if(text.includes("ipa")||text.includes("Ipa")||text.includes("IPa")||text.includes("IPA")){
-//     text = text.trim().toLowerCase().split(" ");
-//     lastWord = text[text.length-1];
-//   }else{
-//     return;
-//   }
-
-//   if(lastWord === "ipa"){
-//     let linkURL = `${__dirname}/data/ipa.jpg`;
-//     try {
-//       const result = await client.files.upload({
-//         channels: channel,
-//         initial_comment: "The IPA",
-//         thread_ts: thread_ts,
-//         file: fs.createReadStream(linkURL)
-
-//       });
-//       console.log("send ipa: " + result.ok);
-//     }
-//     catch (error) {
-//       console.error(error);
-//     }
-//   }else{
-//     try {
-//       phoneticResult = await getIPA(lastWord);
-//       const result = await client.chat.postMessage({
-//         channel: channel,
-//         thread_ts: thread_ts,
-//         text: `${lastWord}: /${phoneticResult}/`,
-//       });
-//       console.log(result.ok);
-//     }
-//     catch (error) {
-//       console.error(error);
-//     }
-//   }
-// });
 
 app.event(
   "app_mention",
@@ -1485,7 +1708,7 @@ app.event("message", async ({
     thread_ts,
     bot_id
   } =
-  message;
+    message;
 
   if (
     typeof channel_type === "undefined" ||
@@ -1892,7 +2115,7 @@ app.event("message", async ({
     events_ts,
     channel_type,
   } = event;
-  
+
   if (typeof text == "undefined") {
     return;
   }
@@ -1987,7 +2210,7 @@ app.event("message", async ({
     return;
   }
 
-  let endpoint = "https://api.cognitive.microsofttranslator.com";  
+  let endpoint = "https://api.cognitive.microsofttranslator.com";
   let location = "southeastasia";
 
   const translating = async (options = {
@@ -2018,7 +2241,7 @@ app.event("message", async ({
       },
       data: [{
         text: words,
-      }, ],
+      },],
       responseType: "json",
     });
 
@@ -2094,7 +2317,7 @@ app.event("message", async ({
     events_ts,
     channel_type,
   } = event;
-  
+
   if (typeof text == "undefined") {
     return;
   }
@@ -2105,7 +2328,7 @@ app.event("message", async ({
   if (echoCommand !== "echo") {
     return;
   }
-  
+
   let soundWord = textArray[1];
 
   let {
@@ -2179,7 +2402,7 @@ app.event("message", async ({
     events_ts,
     channel_type,
   } = event;
-  
+
   if (typeof text == "undefined") {
     return;
   }
@@ -2209,7 +2432,7 @@ app.event("message", async ({
     id: "vi-VN",
     male: "vi-VN-NamMinhNeural",
     female: "vi-VN-HoaiMyNeural"
-  }; 
+  };
 
   const en = {
     us: "en-US",
@@ -2404,9 +2627,9 @@ app.event("reaction_added", async ({
 
       let textFromVietSpeakBot = result.messages.filter(
         (e) =>
-        e.user == "U01EVJFP0U8" &&
-        typeof e.files === "undefined" &&
-        e.text.length > 80
+          e.user == "U01EVJFP0U8" &&
+          typeof e.files === "undefined" &&
+          e.text.length > 80
       );
 
       let textFromVSB;
@@ -3186,16 +3409,13 @@ app.event("message", async ({
     return;
   }
 
-
   let textSubmission = text.trim().toLowerCase();
 
   if (textSubmission !== "user") {
     return;
   }
 
-
   let usersStore = {};
-
   function saveUsers(usersArray) {
     let userId = '';
 
@@ -4492,24 +4712,24 @@ app.event("message", async ({
   if (color === "unknown") {
     color = ""
   }
-    
-  async function getMessageLink(){
-      try {
-        const resultLink = await client.chat.getPermalink({
-          channel: channel,
-          message_ts: ts
-        });
-        return resultLink;
-      } catch (error) {
-        console.error(error);
-      }
-      
+
+  async function getMessageLink() {
+    try {
+      const resultLink = await client.chat.getPermalink({
+        channel: channel,
+        message_ts: ts
+      });
+      return resultLink;
+    } catch (error) {
+      console.error(error);
+    }
+
   }
-  
-  let {permalink} = await getMessageLink();
+
+  let { permalink } = await getMessageLink();
   let currentTaskNow = getCurrentTask(currentTimeStamp());
   let userInfo = await getUserDatabase(user);
-  
+
   let followerList = userInfo.followers;
   if (followerList.length > 0) {
     followerList.forEach(async function (eachFollower) {
