@@ -85,8 +85,6 @@ const {
 
 // ============================================================
 
-
-
 const client = new WebClient(
   Slack_KIWI_Client_token, {
     logLevel: LogLevel.DEBUG,
@@ -872,9 +870,7 @@ async function getSpelling(indexID) {
   return transcript;
 }
 
-
 let listenningChallengesChannel = "C01CDAFCQ3B";
-
 async function postSpelling() {
   try {
     const {
@@ -883,8 +879,7 @@ async function postSpelling() {
       transcript
     } = await getSpelling(null);
 
-    await 
-    Axios(audio, "audio.mp3")
+    await getAudioFileAxios(audio, "audio.mp3")
     let welcomeMessageList = [
       "◦•●◉✿✿◉●•◦",
       "🌠🌠🌠",
@@ -913,6 +908,7 @@ async function postSpelling() {
     const file = "audio.mp3";
     const result = await client.files.upload({
       channels: listenningChallengesChannel, //----> channels có s khi up load file
+      //   thread_ts: thread_ts,
       filename: uuidv4() + ".mp3",
       initial_comment: thecomment,
       file: fs.createReadStream(file),
@@ -1750,7 +1746,6 @@ app.event("message", async ({
 
   //end of xóa
 });
-
 
 
 /*===================================================================SENDING IPA AUDIO==============================================================*/
@@ -4351,6 +4346,7 @@ app.event("message", async ({
     files,
     thread_ts
   } = event;
+
   let {
     user,
     ts,
