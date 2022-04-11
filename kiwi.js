@@ -81,7 +81,8 @@ const {
   stringToSlug,
   allowingString,
   onlyHandleIfUploadFile,
-  getTheLastDayOfTheMonth
+  getTheLastDayOfTheMonth,
+  allowSingleKeyWords
 } = require("./utilities");
 
 // ============================================================
@@ -153,8 +154,7 @@ const app = new App({
 
 
 
-app.message(
-  /^(hi|hello|hey|Hi|Hello|Hey)+/,
+app.event("message",
   async ({
     body,
     event,
@@ -174,13 +174,15 @@ app.message(
       parent_user_id,
     } = message;
 
+    if (allowSingleKeyWords(text, ["hi", "hello", "hey"])) return;
+
     if (onlyHandleIfIM(channel_type) ||
       onlyHandleIfNotDeletingEvent(subtype)
     ) {
       return;
     }
 
-    const greeting = context.matches[0];
+
     const sayGreetings = [
       `how are you ? `,
       `bạn có khỏe hông?! `,
@@ -194,7 +196,7 @@ app.message(
 
     let randomsayGreetings = sayGreetings[randomIndex(sayGreetings.length)];
 
-    let botReplyGreeting = `${greeting} <@${message.user}>, ${randomsayGreetings}`;
+    let botReplyGreeting = `${text} <@${message.user}>, ${randomsayGreetings}`;
 
     try {
       const result = await client.chat.postMessage({
@@ -207,8 +209,7 @@ app.message(
   }
 );
 
-app.message(
-  /^(thank|Thank|thanks|Thanks|THANK|THANKS)+/,
+app.event("message",
   async ({
     body,
     event,
@@ -228,13 +229,17 @@ app.message(
       parent_user_id,
     } = message;
 
+
+    if (allowSingleKeyWords(text, ["thanks", "thank"])) return;
+
+
     if (onlyHandleIfIM(channel_type) ||
       onlyHandleIfNotDeletingEvent(subtype)
     ) {
       return;
     }
 
-    const greeting = context.matches[0];
+
     const thanks = [
       `You are welcome <@${message.user}>! `,
       `Hông có chi <@${message.user}>! `,
@@ -245,7 +250,7 @@ app.message(
     ];
 
     let randomsayThanks = thanks[randomIndex(thanks.length)];
-    let botReplyThanks = `${greeting} <@${message.user}>, ${randomsayThanks}`;
+    let botReplyThanks = `<@${message.user}>, ${randomsayThanks}`;
     try {
       const result = await client.chat.postMessage({
         channel: user,
@@ -257,7 +262,7 @@ app.message(
   }
 );
 
-app.message(/^(v|V)+/, async ({ message, say }) => {
+app.event("message", async ({ message, say }) => {
   let {
     user,
     ts,
@@ -269,6 +274,8 @@ app.message(/^(v|V)+/, async ({ message, say }) => {
     bot_id,
     parent_user_id,
   } = message;
+
+  if (allowSingleKeyWords(text, ["v"])) return;
 
   if (onlyHandleIfIM(channel_type) ||
     onlyHandleIfNotDeletingEvent(subtype)
@@ -389,7 +396,7 @@ app.message(/(w|W)\s[a-zA-Z]+/, async ({ context, body, message, say }) => {
 });
 
 // ==============================fact===============================
-app.message(/^(f|F|ff|Ff|FF)+/, async ({ message, say }) => {
+app.event("message", async ({ message, say }) => {
   let {
     user,
     ts,
@@ -401,6 +408,8 @@ app.message(/^(f|F|ff|Ff|FF)+/, async ({ message, say }) => {
     bot_id,
     parent_user_id,
   } = message;
+
+  if (allowSingleKeyWords(text, ["f", "ff", "fact"])) return;
 
   if (onlyHandleIfIM(channel_type) ||
     onlyHandleIfNotDeletingEvent(subtype)
@@ -422,7 +431,7 @@ app.message(/^(f|F|ff|Ff|FF)+/, async ({ message, say }) => {
 });
 
 // ==============================quote===============================
-app.message(/^(q|Q|quote|Quote)+/, async ({ message, say }) => {
+app.event("message", async ({ message, say }) => {
   let {
     user,
     ts,
@@ -434,6 +443,8 @@ app.message(/^(q|Q|quote|Quote)+/, async ({ message, say }) => {
     bot_id,
     parent_user_id,
   } = message;
+
+  if (allowSingleKeyWords(text, ["q", "quote"])) return;
 
   if (onlyHandleIfIM(channel_type) ||
     onlyHandleIfNotDeletingEvent(subtype)
@@ -455,7 +466,7 @@ app.message(/^(q|Q|quote|Quote)+/, async ({ message, say }) => {
 });
 
 // ==============================story===============================
-app.message(/^(s|S|story|Story)+/, async ({ message, say }) => {
+app.event("message", async ({ message, say }) => {
   let {
     user,
     ts,
@@ -467,6 +478,8 @@ app.message(/^(s|S|story|Story)+/, async ({ message, say }) => {
     bot_id,
     parent_user_id,
   } = message;
+
+  if (allowSingleKeyWords(text, ["s", "story"])) return;
 
   if (onlyHandleIfIM(channel_type) ||
     onlyHandleIfNotDeletingEvent(subtype)
@@ -487,10 +500,8 @@ app.message(/^(s|S|story|Story)+/, async ({ message, say }) => {
 
 });
 
-
-
-
-app.message(/^(j|J|joke|Joke)+/, async ({ message, say }) => {
+// ==============================joke===============================
+app.event("message", async ({ message, event }) => {
   let {
     user,
     ts,
@@ -502,6 +513,9 @@ app.message(/^(j|J|joke|Joke)+/, async ({ message, say }) => {
     bot_id,
     parent_user_id,
   } = message;
+
+
+  if (allowSingleKeyWords(text, ["j", "joke"])) return;
 
   if (onlyHandleIfIM(channel_type) ||
     onlyHandleIfNotDeletingEvent(subtype)
@@ -526,7 +540,7 @@ app.message(/^(j|J|joke|Joke)+/, async ({ message, say }) => {
 });
 
 
-app.message(/(^(help|Help|HELP|h|H)$)+/, async ({ message, say }) => {
+app.event("message", async ({ message, say }) => {
   let {
     user,
     ts,
@@ -538,6 +552,9 @@ app.message(/(^(help|Help|HELP|h|H)$)+/, async ({ message, say }) => {
     bot_id,
     parent_user_id,
   } = message;
+
+
+  if (allowSingleKeyWords(text, ["h", "help"])) return;
 
   if (onlyHandleIfIM(channel_type) ||
     onlyHandleIfNotDeletingEvent(subtype)
@@ -1202,7 +1219,6 @@ app.event(
       return;
     }
 
-    //   biến text có sẵn từ app.event
     let textSubmission = text.trim().toLowerCase();
     let index = textSubmission.indexOf("bee");
     textSubmission = textSubmission.substring(index + 3);
@@ -4202,7 +4218,6 @@ app.event("message", async ({
 
 });
 
-
 /*================================================================= COMMON SHARED FUNCTION USED WITH CLOUDANT  ===================================================================*/
 async function gettingDocsFromDatabase(dbName, docID) {
   const getDocParams = {
@@ -4532,9 +4547,7 @@ async function postReportTaskList(destination, taskNumber) {
     lateBirdUser.reverse();
     lateBirdUser = lateBirdUser.map((e) => `<@${e.user}>`)
     lateBirdUser = lateBirdUser.length > 0 ? `\n\nTop *\`ốc sên\`* kẹt xe: ${lateBirdUser.join(", ")}` : "";
-
     let decorationText = `*✧･ﾟ: *✧･ﾟ🅡🅔🅟🅞🅡🅣* *:･ﾟ✧*:･ﾟ✧*`;
-
 
     let sayReturn = `${decorationText} ${topFollowerDisplay}\n\n ${postByUsers.length} là số *\`bài đăng\`* của ${uniqueUsers.length}/${memberInChannel.length} tổng số thành viên trong task ${currentTaskNow}. ${top4}${top3}${top2}\n\n ${topReactionIndex}\n\n ${reply_countIndex}\n\n ${niceComments}\n\n ${lazyCat}\n\n ${earlyBirdUser}  ${lateBirdUser}\n\n${notsubmitted}`
 
@@ -4580,13 +4593,9 @@ app.event("message", async ({
   }
 
   if (typeof text === "undefined") return;
-
   text = text.trim().toLowerCase().split(" ").filter((e) => e.length > 0)
-
   if (text.length >= 3) return;
-
   if (text[0] !== "rank") return;
-
   if (development(user, event)) return;
 
   if (onlyHandleIfIM(channel_type) ||
@@ -4599,7 +4608,6 @@ app.event("message", async ({
   await postReportTaskList(user, text[1]);
 
 });
-
 
 /*======================================================== ENDING TASK REPORT ========================================================*/
 const ruleReport = new schedule.RecurrenceRule();
@@ -4614,7 +4622,6 @@ const jobruleReport = schedule.scheduleJob(ruleReport, function () {
   let channel00_Announcement = `C01BY4ZQ7TM`;
   postReportTaskList(channel00_Announcement, previousTask)
 });
-
 
 /*======================================================== WARNING ABOUT THE DEADLINE ==================================================*/
 async function postWarningList() {
