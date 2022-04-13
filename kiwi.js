@@ -82,7 +82,7 @@ const {
   allowingString,
   onlyHandleIfUploadFile,
   getTheLastDayOfTheMonth,
-  allowSingleKeyWords
+  onlyHandleFollowingSingleWord
 } = require("./utilities");
 
 // ============================================================
@@ -174,7 +174,7 @@ app.event("message",
       parent_user_id,
     } = message;
 
-    if (allowSingleKeyWords(text, ["hi", "hello", "hey"])) return;
+    if (onlyHandleFollowingSingleWord(text, ["hi", "hello", "hey"])) return;
 
     if (onlyHandleIfIM(channel_type) ||
       onlyHandleIfNotDeletingEvent(subtype)
@@ -230,7 +230,7 @@ app.event("message",
     } = message;
 
 
-    if (allowSingleKeyWords(text, ["thanks", "thank"])) return;
+    if (onlyHandleFollowingSingleWord(text, ["thanks", "thank"])) return;
 
 
     if (onlyHandleIfIM(channel_type) ||
@@ -262,6 +262,8 @@ app.event("message",
   }
 );
 
+//=========================================GRE================================================================
+
 app.event("message", async ({ message, say }) => {
   let {
     user,
@@ -275,7 +277,7 @@ app.event("message", async ({ message, say }) => {
     parent_user_id,
   } = message;
 
-  if (allowSingleKeyWords(text, ["v"])) return;
+  if (onlyHandleFollowingSingleWord(text, ["v"])) return;
 
   if (onlyHandleIfIM(channel_type) ||
     onlyHandleIfNotDeletingEvent(subtype)
@@ -409,7 +411,7 @@ app.event("message", async ({ message, say }) => {
     parent_user_id,
   } = message;
 
-  if (allowSingleKeyWords(text, ["f", "ff", "fact"])) return;
+  if (onlyHandleFollowingSingleWord(text, ["f", "ff", "fact"])) return;
 
   if (onlyHandleIfIM(channel_type) ||
     onlyHandleIfNotDeletingEvent(subtype)
@@ -444,7 +446,7 @@ app.event("message", async ({ message, say }) => {
     parent_user_id,
   } = message;
 
-  if (allowSingleKeyWords(text, ["q", "quote"])) return;
+  if (onlyHandleFollowingSingleWord(text, ["q", "quote"])) return;
 
   if (onlyHandleIfIM(channel_type) ||
     onlyHandleIfNotDeletingEvent(subtype)
@@ -479,7 +481,7 @@ app.event("message", async ({ message, say }) => {
     parent_user_id,
   } = message;
 
-  if (allowSingleKeyWords(text, ["s", "story"])) return;
+  if (onlyHandleFollowingSingleWord(text, ["s", "story"])) return;
 
   if (onlyHandleIfIM(channel_type) ||
     onlyHandleIfNotDeletingEvent(subtype)
@@ -515,7 +517,7 @@ app.event("message", async ({ message, event }) => {
   } = message;
 
 
-  if (allowSingleKeyWords(text, ["j", "joke"])) return;
+  if (onlyHandleFollowingSingleWord(text, ["j", "joke"])) return;
 
   if (onlyHandleIfIM(channel_type) ||
     onlyHandleIfNotDeletingEvent(subtype)
@@ -554,7 +556,7 @@ app.event("message", async ({ message, say }) => {
   } = message;
 
 
-  if (allowSingleKeyWords(text, ["h", "help"])) return;
+  if (onlyHandleFollowingSingleWord(text, ["h", "help"])) return;
 
   if (onlyHandleIfIM(channel_type) ||
     onlyHandleIfNotDeletingEvent(subtype)
@@ -562,7 +564,7 @@ app.event("message", async ({ message, say }) => {
     return;
   }
 
-  let words = `1) Type *\`d love\`* to check the dictionary of the word \`love\`.\n 2) Type *\`v\`* to receive a random GRE vocabulary. \n 3) Type *\`f\`* to receive a random fun fact. \n 4) Type *\`j\`* to receive a random joke. \n 5) Type *\`q\`* to receive a random quote. \n 6) Type *\`w x\`* to receive a x' weather condition. Try *\`w saigon\`*.\n 7) Type *\`h\`* to receive help. Here you are. \n 8) Type *\`s\`* to receive a random story written by Aesop. Enjoy reading!. \n 9) Type *\`e\`* .to receive a random article published by Economist. Enjoy reading!. \n 10) Type *\`hi\`*, *\`hello\`* or *\`thanks\`* if you wish. \n 11) Type *\`me\`*, to set up your profile. \n 12) Type *\`follow\`* or *\`unfollow\`* and mention the users you want to follow or unfollow. \n 13) Click on the bouque icon to receive the mark of the current audio.\n 14) Send *\`"vi English setence"\`* to translate English to Vietnamese.\n 15) Send *\`"en xin chào"\`* to translate Vietnamese to English.\n 16) Send *\`"visound  xin chào"\`* to convert text to Vietnamese speech.\n 17) Send *\`"ensound hello world"\`* to convert text to English speech.\n 18) Send *\`"me_yourid"\`* to set up your own anonymous ID.\n 19) Type *\`"thanos"\`* in the thread created by you to eliminate the whole thread.\n 20) Type your transcript in the channel #8 to receive your mark when listening to the audio.\n 21) Type *\`"bee"\`* when you want to receive the transcript.`
+  let words = `1) Type *\`d love\`* to check the dictionary of the word \`love\`.\n 2) Type *\`v\`* to receive a random GRE vocabulary. \n 3) Type *\`f\`* to receive a random fun fact. \n 4) Type *\`j\`* to receive a random joke. \n 5) Type *\`q\`* to receive a random quote. \n 6) Type *\`w x\`* to receive a x' weather condition. Try *\`w saigon\`*.\n 7) Type *\`h\`* to receive help. Here you are. \n 8) Type *\`s\`* to receive a random story written by Aesop. Enjoy reading!. \n 9) Type *\`e\`* .to receive a random article published by Economist. Enjoy reading!. \n 10) Type *\`hi\`*, *\`hello\`* or *\`thanks\`* if you wish. \n 11) Type *\`me\`*, to set up your profile. \n 12) Type *\`follow\`* or *\`unfollow\`* and mention the users you want to follow or unfollow. \n 13) Click on the bouque icon to receive the mark of the current audio.\n 14) Send *\`"vi English sentence"\`* to translate English to Vietnamese.\n 15) Send *\`"en xin chào"\`* to translate Vietnamese to English.\n 16) Send *\`"visound  xin chào"\`* to convert text to Vietnamese speech.\n 17) Send *\`"ensound hello world"\`* to convert text to English speech.\n 18) Send *\`"me_yourid"\`* to set up your own anonymous ID.\n 19) Type *\`"thanos"\`* in the thread created by you to eliminate the whole thread.\n 20) Type your transcript in the channel #8 to receive your mark when listening to the audio.\n 21) Type *\`"bee"\`* when you want to receive the transcript.`
 
   try {
     const result = await client.chat.postMessage({
@@ -708,9 +710,8 @@ app.event("message", async ({ message, say }) => {
     return;
   }
 
-  text = text.trim().toLowerCase();
 
-  if (text !== "ny") return;
+  if (onlyHandleFollowingSingleWord(text, ["ny"])) return;
 
   let dataReturnNYT = await getItem(randomIndex(10));
 
@@ -784,16 +785,10 @@ app.event("message", async ({
     user
   } = event;
 
-  if (typeof text === "undefined") return;
 
-  text = text.trim().toLowerCase();
-
-  if (text !== "e") {
-    return;
-  }
+  if (onlyHandleFollowingSingleWord(text, ["e"])) return;
 
   if (onlyHandleIfIM(channel_type)) return;
-
   let randomIndexEconomist = randomIndex(totalItem);
   let dataReturn = await getItemEconomist(randomIndexEconomist);
 
@@ -909,7 +904,6 @@ ruleEconomist.tz = "Asia/Ho_Chi_Minh";
 const jobPostEoconomist = schedule.scheduleJob(ruleEconomist, function () {
   postEconoMistNews();
 });
-
 
 
 // ========================================================================================================================================
@@ -1477,8 +1471,6 @@ app.event("message", async ({
         text: messageResult,
       });
 
-      //console.log(result);
-      //console.log(`ts là ${ts}`)
     } catch (error) {
       console.error(error);
     }
@@ -1490,7 +1482,6 @@ app.event("message", async ({
     }
 
     const messageId = ts;
-    // The ID of the channel that contains the message
     const channelId = channel;
 
     if (onlyHandlePublicEvent(channel_type) ||
@@ -1504,14 +1495,11 @@ app.event("message", async ({
       getMark >= 40
     ) {
       try {
-        //Chú ý: Call the chat.delete method using the WebClient (clientUser với token user là admin thay vì app client)
         const result = await clientUser.chat.delete({
           channel: channelId,
           ts: messageId,
           as_user: true,
         });
-
-        // console.log(result);
         console.log(`messageId khi xóa là ${messageId}`);
         console.log(`điểm số: ${getMark}`);
       } catch (error) {
@@ -3160,6 +3148,80 @@ app.action("block_actions", async ({
 });
 
 
+app.event("message",
+  async ({
+    body,
+    event,
+    context,
+    client,
+    message
+  }) => {
+    let {
+      user,
+      ts,
+      text,
+      thread_ts,
+      subtype,
+      channel,
+      channel_type,
+      bot_id,
+      parent_user_id,
+    } = message;
+
+
+    if (onlyHandleFollowingSingleWord(text, ["vuong"])) return;
+
+
+    if (onlyHandleIfIM(channel_type) ||
+      onlyHandleIfNotDeletingEvent(subtype)
+    ) {
+      return;
+    }
+
+    let blockContent = `[
+		{
+			"type": "section",
+			"text": {
+				"type": "mrkdwn",
+				"text": "Chew choo! @scott started a train to Deli Board at 11:30. Will you join?"
+			}
+		},
+		{
+			"type": "actions",
+			"elements": [
+				{
+					"type": "button",
+					"text": {
+						"type": "plain_text",
+						"text": "Yes",
+						"emoji": true
+					}
+				},
+				{
+					"type": "button",
+					"text": {
+						"type": "plain_text",
+						"text": "No",
+						"emoji": true
+					}
+				}
+			]
+		}
+	]`
+
+    try {
+      const result = await client.chat.postMessage({
+        channel: user,
+        text: "hello world",
+        blocks: blockContent
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  }
+);
+
+
 
 // ===================================================ENDING TASK===============================================
 
@@ -4596,7 +4658,9 @@ app.event("message", async ({
   text = text.trim().toLowerCase().split(" ").filter((e) => e.length > 0)
   if (text.length >= 3) return;
   if (text[0] !== "rank") return;
-  if (development(user, event)) return;
+
+  //   if (development(user, event)) return;
+  console.log(user + " is checking rank");
 
   if (onlyHandleIfIM(channel_type) ||
     onlyHandleIfNotBot(user) ||
@@ -4650,7 +4714,7 @@ async function postWarningList() {
   let totalnotsubmitted = notsubmitted.length;
   notsubmitted = notsubmitted.map((e) => `<@${e}>`);
 
-  notsubmitted = `----------*\`*===**-^^WARNING^^-**===*\`* ----------\n\n Danh sách ${totalnotsubmitted} quý khách *\`kẹt xe\`* chưa nộp bài task ${currentTask}: \n\n ${notsubmitted.join(", ")} \n\n Các bạn còn 6 giờ đồng hồ để thu và nộp bài hoàn thành task ${currentTask}. \n\n Chúc các bạn sớm về đích dù trời nắng hay mưa, chắc là Internet vẫn chạy`;
+  notsubmitted = `*\`*===**-^^WARNING^^-**===*\`*\n\n Danh sách ${totalnotsubmitted} quý khách *\`kẹt xe\`* chưa nộp bài task ${currentTask}: \n\n ${notsubmitted.join(", ")} \n\n Các bạn còn 6 giờ đồng hồ để thu và nộp bài hoàn thành task ${currentTask}. \n\n Chúc các bạn sớm về đích dù trời nắng hay mưa, chắc là Internet vẫn chạy`;
   return notsubmitted;
 }
 
@@ -4752,6 +4816,96 @@ app.event("message", async ({
 
     })
   }
+});
+
+
+/*======================================= volunteer =====================================================*/
+app.event("message", async ({
+  body,
+  event,
+  context,
+  client,
+  message,
+  say
+}) => {
+
+  let {
+    text,
+    user,
+    channel_type
+  } = message;
+
+  if (onlyHandleIfIM(channel_type)) return;
+
+  if (onlyHandleFollowingSingleWord(text, ["volunteer"])) return;
+
+  const updatingPrivateID = async (dbName, docID, userID) => {
+
+    try {
+
+      const document = (
+        await clientcloudant.getDocument({
+          docId: docID,
+          db: dbName,
+        })
+      ).result;
+
+      let {
+        user
+      } = document;
+
+      let listofID = [];
+
+      for (let u in user) {
+        listofID.push(user[u].anonymous)
+      }
+
+      if (user.hasOwnProperty(userID)) {
+        if (user[userID].volunteer == true) {
+          document.user[userID].volunteer = false;
+          document._rev = (
+            await clientcloudant.postDocument({
+              db: dbName,
+              document, // _id and _rev MUST be inside the document object
+            })
+          ).result.rev;
+          return false;
+        } else {
+
+          document.user[userID].volunteer = true;
+          document._rev = (
+            await clientcloudant.postDocument({
+              db: dbName,
+              document, // _id and _rev MUST be inside the document object
+            })
+          ).result.rev;
+          return true;
+        }
+        console.log("=========== UPDATING annonymous ID IN THE DATABASE: ===========: " + userID + " - ");
+      }
+
+    } catch (err) {
+      if (err.code === 404) {
+        console.log(
+          `Cannot update document because either "${dbName}" database or the "document" ` + `document was not found.`
+        );
+      }
+    }
+  }
+
+  try {
+
+    let status_volunteer = await updatingPrivateID("users", "vietspeak_user", user);
+
+    const result = await client.chat.postMessage({
+      channel: user,
+      text: status_volunteer ? `Bạn vừa tham gia nhóm volunteer comment hỗ trợ các bạn trên VietSpeak. Soạn "volunteer" để ngừng tham gia!` : `Bạn vừa ngừng không tham gia nhóm volunteer comment hỗ trợ các bạn trên VietSpeak. Soạn "volunteer" để tham gia lại!`
+    });
+    console.log(result.ok);
+  } catch (error) {
+    console.error(error);
+  }
+
 });
 
 /*==============================================================================================================================*/
