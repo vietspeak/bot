@@ -182,7 +182,6 @@ app.event("message",
       return;
     }
 
-
     const sayGreetings = [
       `how are you ? `,
       `bạn có khỏe hông?! `,
@@ -709,9 +708,9 @@ app.event("message", async ({ message, say }) => {
   ) {
     return;
   }
-
-
-  if (onlyHandleFollowingSingleWord(text, ["ny"])) return;
+ 
+ 
+ if (onlyHandleFollowingSingleWord(text, ["ny"])) return;
 
   let dataReturnNYT = await getItem(randomIndex(10));
 
@@ -784,8 +783,8 @@ app.event("message", async ({
     channel_type,
     user
   } = event;
-
-
+  
+  
   if (onlyHandleFollowingSingleWord(text, ["e"])) return;
 
   if (onlyHandleIfIM(channel_type)) return;
@@ -1470,7 +1469,7 @@ app.event("message", async ({
         thread_ts: thread_ts,
         text: messageResult,
       });
-
+      
     } catch (error) {
       console.error(error);
     }
@@ -3177,7 +3176,7 @@ app.event("message",
     ) {
       return;
     }
-
+    
     let blockContent = `[
 		{
 			"type": "section",
@@ -3635,6 +3634,7 @@ app.event("user_change", async ({
         document.user[userID].backup = false;
         document.user[userID].saveme = false;
         document.user[userID].message = "";
+        document.user[userID].volunteer = false;
 
         document._rev = (
           await clientcloudant.postDocument({
@@ -3737,8 +3737,17 @@ app.event("message", async ({
     let aboutMe = await getInfoFromExistingDatabase(user);
 
     let followingList = aboutMe.following;
+    
     let follower = aboutMe.followers;
-
+    
+    let volunteer = aboutMe.volunteer;
+    
+    if (volunteer == true) {
+      volunteer = `\n\nBạn có thuộc nhóm volunteer hay không? Có.`
+    } else {
+      volunteer = `\n\nBạn có thuộc nhóm volunteer hay không? Không. Soạn "volunteer" và gửi tới Kiwi để tham gia tình nguyện giúp đỡ các bạn khác!`
+    }
+    
     if (followingList.length > 0) {
       followingList = followingList.map((e) => `<@${e}>`)
 
@@ -3755,7 +3764,7 @@ app.event("message", async ({
 
     let updateandanh = aboutMe.changeanonymous ? "" : `\n\nBạn có thể thay đổi id ẩn danh của mình *\`MỘT LẦN\`* bằng cách soạn me_yourid và gửi tới KIWI! Chú ý yourid cần nhiều hơn 4 kí tự và ít hơn 40 kí tự, không viết hoa, không có dấu tiếng Việt, không khoảng cách giữa các kí tự, có thể dùng số và chữ`
 
-    let textOutput = `Hello <@${user}> \n\nTên hiển thị của bạn là: *\`${aboutMe.real_name}\`* \n\n ID ẩn danh của bạn là: *\`${aboutMe.anonymous}\`* ${updateandanh} ${followingList} ${follower}`
+    let textOutput = `Hello <@${user}> \n\nTên hiển thị của bạn là: *\`${aboutMe.real_name}\`* \n\n ID ẩn danh của bạn là: *\`${aboutMe.anonymous}\`* ${updateandanh} ${followingList} ${follower} ${volunteer}`
     const result = await client.chat.postMessage({
       channel: user,
       text: textOutput,
@@ -4426,6 +4435,22 @@ async function getTopFollower() {
   topFollower = topFollower.map((e, index) => `${index + 1}. <@${Object.keys(e)}>: ${Object.values(e)}`)
   topFollower = `\n\n Top *\`followers\`*: \n\n${topFollower.join("\n")}`
   return topFollower;
+}
+
+async function getListofVolunteer() {
+  let activeUser = await gettingDocsFromDatabase("users", "vietspeak_user");
+  
+  let topVolunteer = [];
+  
+  for (let u in activeUser.user) {
+    if (activeUser.user[u].volunteer === true) {
+      topVolunteer.push(activeUser.user[u].slackId)
+    }
+  }
+  
+  topVolunteer = topVolunteer.map((e, index) => `${index + 1}. <@${e}>`)
+  topVolunteer = `\n\n Danh sách *\`volunteer\`*: \n\n${topVolunteer.join("\n")}`
+  return topVolunteer + "\n\n";
 
 }
 
@@ -4446,12 +4471,12 @@ function findDuplicatedandCount(array = []) {
   return result;
 }
 
-
 async function postReportTaskList(destination, taskNumber) {
   try {
 
     let topFollowerDisplay = await getTopFollower();
-
+    let volunteerList = await getListofVolunteer()
+    
     let channel00_Announcement = `C01BY4ZQ7TM`;
     let currentTaskNow = getCurrentTask(currentTimeStamp());
     let beginning, ending;
@@ -4611,7 +4636,7 @@ async function postReportTaskList(destination, taskNumber) {
     lateBirdUser = lateBirdUser.length > 0 ? `\n\nTop *\`ốc sên\`* kẹt xe: ${lateBirdUser.join(", ")}` : "";
     let decorationText = `*✧･ﾟ: *✧･ﾟ🅡🅔🅟🅞🅡🅣* *:･ﾟ✧*:･ﾟ✧*`;
 
-    let sayReturn = `${decorationText} ${topFollowerDisplay}\n\n ${postByUsers.length} là số *\`bài đăng\`* của ${uniqueUsers.length}/${memberInChannel.length} tổng số thành viên trong task ${currentTaskNow}. ${top4}${top3}${top2}\n\n ${topReactionIndex}\n\n ${reply_countIndex}\n\n ${niceComments}\n\n ${lazyCat}\n\n ${earlyBirdUser}  ${lateBirdUser}\n\n${notsubmitted}`
+    let sayReturn = `${decorationText} ${topFollowerDisplay}\n\n ${volunteerList} ${postByUsers.length} là số *\`bài đăng\`* của ${uniqueUsers.length}/${memberInChannel.length} tổng số thành viên trong task ${currentTaskNow}. ${top4}${top3}${top2}\n\n ${topReactionIndex}\n\n ${reply_countIndex}\n\n ${niceComments}\n\n ${lazyCat}\n\n ${earlyBirdUser}  ${lateBirdUser}\n\n${notsubmitted}`
 
     try {
       const result = await client.chat.postMessage({
@@ -4658,9 +4683,9 @@ app.event("message", async ({
   text = text.trim().toLowerCase().split(" ").filter((e) => e.length > 0)
   if (text.length >= 3) return;
   if (text[0] !== "rank") return;
-
-  //   if (development(user, event)) return;
-  console.log(user + " is checking rank");
+  
+//   if (development(user, event)) return;
+    console.log(user + " is checking rank");
 
   if (onlyHandleIfIM(channel_type) ||
     onlyHandleIfNotBot(user) ||
@@ -4819,7 +4844,7 @@ app.event("message", async ({
 });
 
 
-/*======================================= volunteer =====================================================*/
+/*======================================= VOLUNTEER =====================================================*/
 app.event("message", async ({
   body,
   event,
@@ -4836,7 +4861,7 @@ app.event("message", async ({
   } = message;
 
   if (onlyHandleIfIM(channel_type)) return;
-
+  
   if (onlyHandleFollowingSingleWord(text, ["volunteer"])) return;
 
   const updatingPrivateID = async (dbName, docID, userID) => {
@@ -4861,7 +4886,9 @@ app.event("message", async ({
       }
 
       if (user.hasOwnProperty(userID)) {
+
         if (user[userID].volunteer == true) {
+
           document.user[userID].volunteer = false;
           document._rev = (
             await clientcloudant.postDocument({
@@ -4869,9 +4896,11 @@ app.event("message", async ({
               document, // _id and _rev MUST be inside the document object
             })
           ).result.rev;
+          
           return false;
-        } else {
 
+        } else {
+            
           document.user[userID].volunteer = true;
           document._rev = (
             await clientcloudant.postDocument({
@@ -4881,6 +4910,7 @@ app.event("message", async ({
           ).result.rev;
           return true;
         }
+        
         console.log("=========== UPDATING annonymous ID IN THE DATABASE: ===========: " + userID + " - ");
       }
 
@@ -4894,19 +4924,78 @@ app.event("message", async ({
   }
 
   try {
-
+    
     let status_volunteer = await updatingPrivateID("users", "vietspeak_user", user);
-
     const result = await client.chat.postMessage({
       channel: user,
-      text: status_volunteer ? `Bạn vừa tham gia nhóm volunteer comment hỗ trợ các bạn trên VietSpeak. Soạn "volunteer" để ngừng tham gia!` : `Bạn vừa ngừng không tham gia nhóm volunteer comment hỗ trợ các bạn trên VietSpeak. Soạn "volunteer" để tham gia lại!`
+      text: status_volunteer ? `Bạn vừa tham gia nhóm volunteer comment hỗ trợ các bạn trên VietSpeak. Soạn "volunteer" để rời nhóm!. Soạn "me" gửi KIWI để xem profile của bạn.` : `Bạn vừa rời nhóm volunteer comment hỗ trợ các bạn trên VietSpeak. Soạn "volunteer" để tham gia lại! Soạn "me" gửi KIWI để xem profile của bạn.`
     });
     console.log(result.ok);
+
   } catch (error) {
     console.error(error);
   }
 
 });
+
+/*======================================================== DISPATCHING VOLUNTEER ==================================================*/
+async function postDispathchingVolunteerComment() {
+  let currentTask = getCurrentTask(currentTimeStamp());
+  let timetable = getTimeStampFromTaskNumber(currentTask);
+  let beginning = timetable.beginning;
+  let ending = timetable.ending;
+
+  let list = await getListPosters(beginning, ending);
+  list = list.flat()
+  
+  let postNeedComments = list.filter(e => {
+     let listReplyUser = e.reply_users;
+     
+     let botslist = ["U01EVJFP0U8", "U01HEMMPVK2", "U02K40CRMFB", "U02N7T5PRRS", "U01DS209G1Y", "U01CYMZM3FV", "U02N47DMKRR", "U01D4RB4EHM"]
+     
+     listReplyUser = listReplyUser.filter((eachreplyUser) => {
+         if(botslist.includes(eachreplyUser)) return false;
+         
+         return true;
+     })
+    
+    if(typeof e.files !== "undefined" && listReplyUser.length < 2){
+        return true;
+          
+      }else{
+          return false;
+    }
+      
+  });
+      
+  console.log(postNeedComments)
+
+}
+
+const rulepostDispathchingVolunteerComment = new schedule.RecurrenceRule();
+    rulepostDispathchingVolunteerComment.second = 0;
+    rulepostDispathchingVolunteerComment.minute = [6, 8, 44, 45, 48, 50, 52, 53, 54, 58, 59];
+    rulepostDispathchingVolunteerComment.hour = [13];
+    rulepostDispathchingVolunteerComment.date = [4, 8, 14, 18, 24, getTheLastDayOfTheMonth()- 2];
+    rulepostDispathchingVolunteerComment.tz = "Asia/Ho_Chi_Minh";
+
+const scheduleDispathchingVolunteerComment = schedule.scheduleJob(rulepostDispathchingVolunteerComment, async function () {
+  //channel1:  G01BPHWQ023 //will U01C3SA99FW 
+  let channel00_Announcement = `C01BY4ZQ7TM`;
+  try {
+    let sayReturn = await postDispathchingVolunteerComment()
+    
+    const result = await app.client.chat.postMessage({
+      channel: 'U01C3SA99FW', //testing
+      text: "sayReturn",
+    });
+    console.log("Dispatching: " + result.ok);
+
+  } catch (error) {
+    console.error(error);
+  }
+});
+
 
 /*==============================================================================================================================*/
 (async () => {
