@@ -17,7 +17,9 @@
     "flat-cache": "^3.0.4",
     "node-cache": "^5.1.2",
     "node-schedule": "^2.1.0",
+    "rxjs": "^7.5.6",
     "string-similarity": "^4.0.4",
+    "universal-rxjs-ajax": "^2.0.4",
     "uuid": "^8.3.2"
   }
 }

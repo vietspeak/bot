@@ -16,6 +16,8 @@ let MICROSOFT_Text_to_Speech_token = process.env.MICROSOFT_Text_to_Speech_token
 let MICROSOFT_TRANSLATION_token = process.env.MICROSOFT_TRANSLATION_token;
 let WEATHER_API = process.env.WEATHER_API
 
+let apiEmailSorted = `https://api.airtable.com/v0/appDhJQmOmVO1x4DM/register_form_vietspeak?fields%5B%5D=Formdate&fields%5B%5D=email__address&sort%5B0%5D%5Bdirection%5D=desc&sort%5B0%5D%5Bfield%5D=Formdate&api_key=${AirTable_Api_key}`
+
 // ====================================================================
 const {
   App
@@ -84,6 +86,12 @@ const {
   getTheLastDayOfTheMonth,
   onlyHandleFollowingSingleWord
 } = require("./utilities");
+
+
+const {Observable, from, of, timer, range, firstValueFrom} = require("rxjs");
+const {map, first, tap, last, filter, catchError} = require("rxjs/operators");
+const { ajax }  = require("rxjs/ajax");  
+const {request} = require('universal-rxjs-ajax'); //use this for nodejs environment
 
 // ============================================================
 
@@ -540,7 +548,7 @@ app.event("message", async ({ message, event }) => {
 
 });
 
-
+// HELP-------------------
 app.event("message", async ({ message, say }) => {
   let {
     user,
@@ -4053,7 +4061,6 @@ app.event("message", async ({
           })
         ).result.rev;
 
-
         console.log("=========== UPDATING FOLLOWING IN THE DATABASE: ===========: " + userID + " - ");
       }
       return resultDisplay;
@@ -4355,16 +4362,69 @@ app.event("message", async ({
   }
 
   let taskNumber = "task_" + getCurrentTask(currentTimeStamp());
-
   if (typeof suptype !== "undefined") {
     if (suptype === "message_deleted" || suptype === "message_changed") return;
   }
-
   await gettingDocsFromDatabase("users", "vietspeak_user")
-
-
 });
 
+
+// ==============================DEBUGGING FOR IMPLEMENTING MORE FEATURES FOR REPORT ==============================
+app.event("message", async ({ message, event }) => {
+  let {
+    user,
+    ts,
+    text,
+    thread_ts,
+    subtype,
+    channel,
+    channel_type,
+    bot_id,
+    parent_user_id,
+  } = message;
+
+
+  if (onlyHandleFollowingSingleWord(text, ["test", "Test"])) return;
+
+  if (onlyHandleIfIM(channel_type) ||
+    onlyHandleIfNotDeletingEvent(subtype)
+  ) {
+    return;
+  }
+  
+  const settings = {
+    url: apiEmailSorted,
+    method: 'GET' // and so on...
+  }
+    
+  const data$ = request(settings)  
+    .pipe(
+      map(data => {
+        return data.response;
+      }),
+      tap(data => {
+        // console.log(data);
+        console.log("Fetching last 100 email registered")
+      }),   
+    )
+      // Converting to promise
+  const outputData = await firstValueFrom(data$)   
+  console.log(outputData)
+    // .subscribe(repo => {
+    //   console.log(repo)
+    //   messageOut = repo
+    // })
+
+  try {
+    const result = await client.chat.postMessage({
+      channel: user,
+      text: outputData,
+    });
+  } catch (error) {
+    console.error(error);
+  }
+
+});
 
 /*==============================================================RANK, REPORT AND WARNING ABOUT THE DEADLINE ========================================================*/
 async function getUserChannel(channelNumber) {
@@ -4505,7 +4565,9 @@ async function postReportTaskList(destination, taskNumber) {
     /* ===============Not submitted ===============*/
     let memberInChannel = await getUserChannel("C01BY57F29H");
     memberInChannel = memberInChannel.filter((e) => {
-      let notcheck = ["U01EVJFP0U8", "U01HEMMPVK2", "U02K40CRMFB", "U02N7T5PRRS", "U01DS209G1Y", "U01CYMZM3FV", "U02N47DMKRR", "U02PQ7A3YB0", "U01D4RB4EHM"]
+
+    // also not check @trunghieu, @hieunguyen: "U01BXJNDETU", "U01CA8D5D3K",
+    let notcheck = ["U01BXJNDETU", "U01CA8D5D3K", "U03SSC0NQPP","U01EVJFP0U8", "U01HEMMPVK2", "U02K40CRMFB", "U02N7T5PRRS", "U01DS209G1Y", "U01CYMZM3FV", "U02N47DMKRR", "U02PQ7A3YB0", "U01D4RB4EHM"]
       for (b of notcheck) {
         if (b === e) return false;
       }
@@ -4727,7 +4789,8 @@ async function postWarningList() {
   /* ===============Not submitted ===============*/
   let memberInChannel = await getUserChannel("C01BY57F29H");
   memberInChannel = memberInChannel.filter((e) => {
-    let notcheck = ["U01EVJFP0U8", "U01HEMMPVK2", "U02K40CRMFB", "U02N7T5PRRS", "U01DS209G1Y", "U01CYMZM3FV", "U02N47DMKRR", "U02PQ7A3YB0", "U01D4RB4EHM"]
+    // also not check @trunghieu, @hieunguyen: "U01BXJNDETU", "U01CA8D5D3K",
+    let notcheck = ["U01BXJNDETU", "U01CA8D5D3K", "U03SSC0NQPP","U01EVJFP0U8", "U01HEMMPVK2", "U02K40CRMFB", "U02N7T5PRRS", "U01DS209G1Y", "U01CYMZM3FV", "U02N47DMKRR", "U02PQ7A3YB0", "U01D4RB4EHM"]
     for (b of notcheck) {
       if (b === e) return false;
     }
