@@ -1,4 +1,4 @@
-require('dotenv').config()
+require("dotenv").config();
 
 let IBM_Cloudant_VietSpeak_Url = process.env.IBM_Cloudant_VietSpeak_Url;
 let IBM_Cloudant_Vietspeak_APIKEY = process.env.IBM_Cloudant_Vietspeak_APIKEY;
@@ -6,26 +6,21 @@ let IBM_Cloudant_Vietspeak_APIKEY = process.env.IBM_Cloudant_Vietspeak_APIKEY;
 let Slack_KIWI_UserClient_token = process.env.Slack_KIWI_UserClient_token;
 let Slack_KIWI_Client_token = process.env.Slack_KIWI_Client_token;
 let Slack_User_VietSpeakBank_token = process.env.Slack_User_VietSpeakBank_token;
-let Slack_KIWI_Bot_token = process.env.Slack_KIWI_Bot_token
-let Slack_KIWI_App_token = process.env.Slack_KIWI_App_token
-let Slack_HOOK_Channel2 = process.env.Slack_HOOK_Channel2
+let Slack_KIWI_Bot_token = process.env.Slack_KIWI_Bot_token;
+let Slack_KIWI_App_token = process.env.Slack_KIWI_App_token;
+let Slack_HOOK_Channel2 = process.env.Slack_HOOK_Channel2;
 let Slack_DOWNLOAD_TOKEN = process.env.Slack_DOWNLOAD_TOKEN;
 
-let AirTable_Api_key = process.env.AirTable_Api_key
-let MICROSOFT_Text_to_Speech_token = process.env.MICROSOFT_Text_to_Speech_token
+let AirTable_Api_key = process.env.AirTable_Api_key;
+let MICROSOFT_Text_to_Speech_token = process.env.MICROSOFT_Text_to_Speech_token;
 let MICROSOFT_TRANSLATION_token = process.env.MICROSOFT_TRANSLATION_token;
-let WEATHER_API = process.env.WEATHER_API
+let WEATHER_API = process.env.WEATHER_API;
 
-let apiEmailSorted = `https://api.airtable.com/v0/appDhJQmOmVO1x4DM/register_form_vietspeak?fields%5B%5D=Formdate&fields%5B%5D=email__address&sort%5B0%5D%5Bdirection%5D=desc&sort%5B0%5D%5Bfield%5D=Formdate&api_key=${AirTable_Api_key}`
+let apiEmailSorted = `https://api.airtable.com/v0/appDhJQmOmVO1x4DM/register_form_vietspeak?fields%5B%5D=Formdate&fields%5B%5D=email__address&sort%5B0%5D%5Bdirection%5D=desc&sort%5B0%5D%5Bfield%5D=Formdate&api_key=${AirTable_Api_key}`;
 
 // ====================================================================
-const {
-  App
-} = require("@slack/bolt");
-const {
-  WebClient,
-  LogLevel
-} = require("@slack/web-api");
+const { App } = require("@slack/bolt");
+const { WebClient, LogLevel } = require("@slack/web-api");
 
 const NodeCache = require("node-cache");
 
@@ -34,19 +29,13 @@ const myCache = new NodeCache();
 const flatCache = require("flat-cache");
 const cache = flatCache.load("vietspeak");
 
-const {
-  customAlphabet
-} = require("nanoid");
-const alphabet = 'abcdefghijklmnopqrstuvwxyz123456789';
+const { customAlphabet } = require("nanoid");
+const alphabet = "abcdefghijklmnopqrstuvwxyz123456789";
 const nanoid = customAlphabet(alphabet, 11);
 
 // ===========================clientcloudant=================================
-const {
-  CloudantV1
-} = require("@ibm-cloud/cloudant");
-const {
-  IamAuthenticator
-} = require("ibm-cloud-sdk-core");
+const { CloudantV1 } = require("@ibm-cloud/cloudant");
+const { IamAuthenticator } = require("ibm-cloud-sdk-core");
 
 //https://cloud.ibm.com/apidocs/cloudant?code=node#authentication
 const authenticator = new IamAuthenticator({
@@ -84,29 +73,34 @@ const {
   allowingString,
   onlyHandleIfUploadFile,
   getTheLastDayOfTheMonth,
-  onlyHandleFollowingSingleWord
+  onlyHandleFollowingSingleWord,
 } = require("./utilities");
 
-
-const {Observable, from, of, timer, range, firstValueFrom} = require("rxjs");
-const {map, first, tap, last, filter, catchError} = require("rxjs/operators");
-const { ajax }  = require("rxjs/ajax");  
-const {request} = require('universal-rxjs-ajax'); //use this for nodejs environment
+const { Observable, from, of, timer, range, firstValueFrom } = require("rxjs");
+const {
+  map,
+  first,
+  scan,
+  toArray,
+  tap,
+  last,
+  take,
+  filter,
+  catchError,
+} = require("rxjs/operators");
+const { ajax } = require("rxjs/ajax");
+const { request } = require("universal-rxjs-ajax"); //use this for nodejs environment
 
 // ============================================================
 
-const client = new WebClient(
-  Slack_KIWI_Client_token, {
+const client = new WebClient(Slack_KIWI_Client_token, {
   logLevel: LogLevel.DEBUG,
-}
-);
+});
 
 // dùng để gọi chat.delete API với token của user
-const clientUser = new WebClient(
-  Slack_KIWI_UserClient_token, {
+const clientUser = new WebClient(Slack_KIWI_UserClient_token, {
   logLevel: LogLevel.DEBUG,
-}
-);
+});
 
 // ============================================================
 const VietSpeakBankUser = new WebClient(Slack_User_VietSpeakBank_token, {
@@ -114,9 +108,7 @@ const VietSpeakBankUser = new WebClient(Slack_User_VietSpeakBank_token, {
 });
 
 const stringSimilarity = require("string-similarity");
-const {
-  v4: uuidv4
-} = require("uuid");
+const { v4: uuidv4 } = require("uuid");
 const schedule = require("node-schedule");
 
 const fs = require("fs");
@@ -157,117 +149,92 @@ function funFact(index) {
 const app = new App({
   socketMode: true,
   token: Slack_KIWI_Bot_token,
-  appToken: Slack_KIWI_App_token
+  appToken: Slack_KIWI_App_token,
 });
 
+app.event("message", async ({ body, event, context, client, message }) => {
+  let {
+    user,
+    ts,
+    text,
+    thread_ts,
+    subtype,
+    channel,
+    channel_type,
+    bot_id,
+    parent_user_id,
+  } = message;
 
+  if (onlyHandleFollowingSingleWord(text, ["hi", "hello", "hey"])) return;
 
-app.event("message",
-  async ({
-    body,
-    event,
-    context,
-    client,
-    message
-  }) => {
-    let {
-      user,
-      ts,
-      text,
-      thread_ts,
-      subtype,
-      channel,
-      channel_type,
-      bot_id,
-      parent_user_id,
-    } = message;
-
-    if (onlyHandleFollowingSingleWord(text, ["hi", "hello", "hey"])) return;
-
-    if (onlyHandleIfIM(channel_type) ||
-      onlyHandleIfNotDeletingEvent(subtype)
-    ) {
-      return;
-    }
-
-    const sayGreetings = [
-      `how are you ? `,
-      `bạn có khỏe hông?! `,
-      `what's up?`,
-      `nice to see you here! `,
-      `how is it going?`,
-      `tui biết xài tiếng Việt nha.! `,
-      `hế nhô hế nhô!`,
-      `chúc một ngày tốt lành nha!`,
-    ];
-
-    let randomsayGreetings = sayGreetings[randomIndex(sayGreetings.length)];
-
-    let botReplyGreeting = `${text} <@${message.user}>, ${randomsayGreetings}`;
-
-    try {
-      const result = await client.chat.postMessage({
-        channel: user,
-        text: botReplyGreeting,
-      });
-    } catch (error) {
-      console.error(error);
-    }
+  if (onlyHandleIfIM(channel_type) || onlyHandleIfNotDeletingEvent(subtype)) {
+    return;
   }
-);
 
-app.event("message",
-  async ({
-    body,
-    event,
-    context,
-    client,
-    message
-  }) => {
-    let {
-      user,
-      ts,
-      text,
-      thread_ts,
-      subtype,
-      channel,
-      channel_type,
-      bot_id,
-      parent_user_id,
-    } = message;
+  const sayGreetings = [
+    `how are you ? `,
+    `bạn có khỏe hông?! `,
+    `what's up?`,
+    `nice to see you here! `,
+    `how is it going?`,
+    `tui biết xài tiếng Việt nha.! `,
+    `hế nhô hế nhô!`,
+    `chúc một ngày tốt lành nha!`,
+  ];
 
+  let randomsayGreetings = sayGreetings[randomIndex(sayGreetings.length)];
 
-    if (onlyHandleFollowingSingleWord(text, ["thanks", "thank"])) return;
+  let botReplyGreeting = `${text} <@${message.user}>, ${randomsayGreetings}`;
 
-
-    if (onlyHandleIfIM(channel_type) ||
-      onlyHandleIfNotDeletingEvent(subtype)
-    ) {
-      return;
-    }
-
-
-    const thanks = [
-      `You are welcome <@${message.user}>! `,
-      `Hông có chi <@${message.user}>! `,
-      `Chiện nhỏ á <@${message.user}>! `,
-      `Okey bro <@${message.user}>! `,
-      `Sure <@${message.user}>! `,
-      `No worry <@${message.user}>! `,
-    ];
-
-    let randomsayThanks = thanks[randomIndex(thanks.length)];
-    let botReplyThanks = `<@${message.user}>, ${randomsayThanks}`;
-    try {
-      const result = await client.chat.postMessage({
-        channel: user,
-        text: botReplyThanks,
-      });
-    } catch (error) {
-      console.error(error);
-    }
+  try {
+    const result = await client.chat.postMessage({
+      channel: user,
+      text: botReplyGreeting,
+    });
+  } catch (error) {
+    console.error(error);
   }
-);
+});
+
+app.event("message", async ({ body, event, context, client, message }) => {
+  let {
+    user,
+    ts,
+    text,
+    thread_ts,
+    subtype,
+    channel,
+    channel_type,
+    bot_id,
+    parent_user_id,
+  } = message;
+
+  if (onlyHandleFollowingSingleWord(text, ["thanks", "thank"])) return;
+
+  if (onlyHandleIfIM(channel_type) || onlyHandleIfNotDeletingEvent(subtype)) {
+    return;
+  }
+
+  const thanks = [
+    `You are welcome <@${message.user}>! `,
+    `Hông có chi <@${message.user}>! `,
+    `Chiện nhỏ á <@${message.user}>! `,
+    `Okey bro <@${message.user}>! `,
+    `Sure <@${message.user}>! `,
+    `No worry <@${message.user}>! `,
+  ];
+
+  let randomsayThanks = thanks[randomIndex(thanks.length)];
+  let botReplyThanks = `<@${message.user}>, ${randomsayThanks}`;
+  try {
+    const result = await client.chat.postMessage({
+      channel: user,
+      text: botReplyThanks,
+    });
+  } catch (error) {
+    console.error(error);
+  }
+});
 
 //=========================================GRE================================================================
 
@@ -286,16 +253,14 @@ app.event("message", async ({ message, say }) => {
 
   if (onlyHandleFollowingSingleWord(text, ["v"])) return;
 
-  if (onlyHandleIfIM(channel_type) ||
-    onlyHandleIfNotDeletingEvent(subtype)
-  ) {
+  if (onlyHandleIfIM(channel_type) || onlyHandleIfNotDeletingEvent(subtype)) {
     return;
   }
 
-  fs.readFile('data/gre-vocabulary.json', 'utf8', async (err, data) => {
+  fs.readFile("data/gre-vocabulary.json", "utf8", async (err, data) => {
     if (err) {
-      console.error(err)
-      return
+      console.error(err);
+      return;
     }
     const databases = JSON.parse(data);
     let random = Math.floor(Math.random() * databases.length);
@@ -309,12 +274,11 @@ app.event("message", async ({ message, say }) => {
     } catch (error) {
       console.error(error);
     }
-  })
+  });
 });
 
 // ==============================weather ==============================
 app.message(/(w|W)\s[a-zA-Z]+/, async ({ context, body, message, say }) => {
-
   let {
     user,
     ts,
@@ -327,12 +291,9 @@ app.message(/(w|W)\s[a-zA-Z]+/, async ({ context, body, message, say }) => {
     parent_user_id,
   } = message;
 
-  if (onlyHandleIfIM(channel_type) ||
-    onlyHandleIfNotDeletingEvent(subtype)
-  ) {
+  if (onlyHandleIfIM(channel_type) || onlyHandleIfNotDeletingEvent(subtype)) {
     return;
   }
-
 
   let textInput = body.event.text;
   let location = text.split(" ")[1].toLowerCase();
@@ -401,7 +362,6 @@ app.message(/(w|W)\s[a-zA-Z]+/, async ({ context, body, message, say }) => {
   }
 
   geWeather();
-
 });
 
 // ==============================fact===============================
@@ -420,13 +380,11 @@ app.event("message", async ({ message, say }) => {
 
   if (onlyHandleFollowingSingleWord(text, ["f", "ff", "fact"])) return;
 
-  if (onlyHandleIfIM(channel_type) ||
-    onlyHandleIfNotDeletingEvent(subtype)
-  ) {
+  if (onlyHandleIfIM(channel_type) || onlyHandleIfNotDeletingEvent(subtype)) {
     return;
   }
 
-  let words = funFact(randomIndex(factCount))
+  let words = funFact(randomIndex(factCount));
 
   try {
     const result = await client.chat.postMessage({
@@ -436,7 +394,6 @@ app.event("message", async ({ message, say }) => {
   } catch (error) {
     console.error(error);
   }
-
 });
 
 // ==============================quote===============================
@@ -455,13 +412,11 @@ app.event("message", async ({ message, say }) => {
 
   if (onlyHandleFollowingSingleWord(text, ["q", "quote"])) return;
 
-  if (onlyHandleIfIM(channel_type) ||
-    onlyHandleIfNotDeletingEvent(subtype)
-  ) {
+  if (onlyHandleIfIM(channel_type) || onlyHandleIfNotDeletingEvent(subtype)) {
     return;
   }
 
-  let words = getRandomQuote(randomIndex(quoteCount))
+  let words = getRandomQuote(randomIndex(quoteCount));
 
   try {
     const result = await client.chat.postMessage({
@@ -471,7 +426,6 @@ app.event("message", async ({ message, say }) => {
   } catch (error) {
     console.error(error);
   }
-
 });
 
 // ==============================story===============================
@@ -490,13 +444,11 @@ app.event("message", async ({ message, say }) => {
 
   if (onlyHandleFollowingSingleWord(text, ["s", "story"])) return;
 
-  if (onlyHandleIfIM(channel_type) ||
-    onlyHandleIfNotDeletingEvent(subtype)
-  ) {
+  if (onlyHandleIfIM(channel_type) || onlyHandleIfNotDeletingEvent(subtype)) {
     return;
   }
 
-  let words = getRandomStories(randomIndex(storiesCount))
+  let words = getRandomStories(randomIndex(storiesCount));
 
   try {
     const result = await client.chat.postMessage({
@@ -506,7 +458,6 @@ app.event("message", async ({ message, say }) => {
   } catch (error) {
     console.error(error);
   }
-
 });
 
 // ==============================joke===============================
@@ -523,19 +474,16 @@ app.event("message", async ({ message, event }) => {
     parent_user_id,
   } = message;
 
-
   if (onlyHandleFollowingSingleWord(text, ["j", "joke"])) return;
 
-  if (onlyHandleIfIM(channel_type) ||
-    onlyHandleIfNotDeletingEvent(subtype)
-  ) {
+  if (onlyHandleIfIM(channel_type) || onlyHandleIfNotDeletingEvent(subtype)) {
     return;
   }
 
   let jokeFetched = joke[randomIndex(jokeLength)];
   let jokeSetup = jokeFetched.setup;
   let jokePunchline = jokeFetched.punchline;
-  let words = `*-* ${jokeSetup}\n *-* ${jokePunchline}`
+  let words = `*-* ${jokeSetup}\n *-* ${jokePunchline}`;
 
   try {
     const result = await client.chat.postMessage({
@@ -545,7 +493,6 @@ app.event("message", async ({ message, event }) => {
   } catch (error) {
     console.error(error);
   }
-
 });
 
 // HELP-------------------
@@ -562,16 +509,13 @@ app.event("message", async ({ message, say }) => {
     parent_user_id,
   } = message;
 
-
   if (onlyHandleFollowingSingleWord(text, ["h", "help"])) return;
 
-  if (onlyHandleIfIM(channel_type) ||
-    onlyHandleIfNotDeletingEvent(subtype)
-  ) {
+  if (onlyHandleIfIM(channel_type) || onlyHandleIfNotDeletingEvent(subtype)) {
     return;
   }
 
-  let words = `1) Type *\`d love\`* to check the dictionary of the word \`love\`.\n 2) Type *\`v\`* to receive a random GRE vocabulary. \n 3) Type *\`f\`* to receive a random fun fact. \n 4) Type *\`j\`* to receive a random joke. \n 5) Type *\`q\`* to receive a random quote. \n 6) Type *\`w x\`* to receive a x' weather condition. Try *\`w saigon\`*.\n 7) Type *\`h\`* to receive help. Here you are. \n 8) Type *\`s\`* to receive a random story written by Aesop. Enjoy reading!. \n 9) Type *\`e\`* .to receive a random article published by Economist. Enjoy reading!. \n 10) Type *\`hi\`*, *\`hello\`* or *\`thanks\`* if you wish. \n 11) Type *\`me\`*, to set up your profile. \n 12) Type *\`follow\`* or *\`unfollow\`* and mention the users you want to follow or unfollow. \n 13) Click on the bouque icon to receive the mark of the current audio.\n 14) Send *\`"vi English sentence"\`* to translate English to Vietnamese.\n 15) Send *\`"en xin chào"\`* to translate Vietnamese to English.\n 16) Send *\`"visound  xin chào"\`* to convert text to Vietnamese speech.\n 17) Send *\`"ensound hello world"\`* to convert text to English speech.\n 18) Send *\`"me_yourid"\`* to set up your own anonymous ID.\n 19) Type *\`"thanos"\`* in the thread created by you to eliminate the whole thread.\n 20) Type your transcript in the channel #8 to receive your mark when listening to the audio.\n 21) Type *\`"bee"\`* when you want to receive the transcript.`
+  let words = `1) Type *\`d love\`* to check the dictionary of the word \`love\`.\n 2) Type *\`v\`* to receive a random GRE vocabulary. \n 3) Type *\`f\`* to receive a random fun fact. \n 4) Type *\`j\`* to receive a random joke. \n 5) Type *\`q\`* to receive a random quote. \n 6) Type *\`w x\`* to receive a x' weather condition. Try *\`w saigon\`*.\n 7) Type *\`h\`* to receive help. Here you are. \n 8) Type *\`s\`* to receive a random story written by Aesop. Enjoy reading!. \n 9) Type *\`e\`* .to receive a random article published by Economist. Enjoy reading!. \n 10) Type *\`hi\`*, *\`hello\`* or *\`thanks\`* if you wish. \n 11) Type *\`me\`*, to set up your profile. \n 12) Type *\`follow\`* or *\`unfollow\`* and mention the users you want to follow or unfollow. \n 13) Click on the bouque icon to receive the mark of the current audio.\n 14) Send *\`"vi English sentence"\`* to translate English to Vietnamese.\n 15) Send *\`"en xin chào"\`* to translate Vietnamese to English.\n 16) Send *\`"visound  xin chào"\`* to convert text to Vietnamese speech.\n 17) Send *\`"ensound hello world"\`* to convert text to English speech.\n 18) Send *\`"me_yourid"\`* to set up your own anonymous ID.\n 19) Type *\`"thanos"\`* in the thread created by you to eliminate the whole thread.\n 20) Type your transcript in the channel #8 to receive your mark when listening to the audio.\n 21) Type *\`"bee"\`* when you want to receive the transcript.`;
 
   try {
     const result = await client.chat.postMessage({
@@ -581,7 +525,6 @@ app.event("message", async ({ message, say }) => {
   } catch (error) {
     console.error(error);
   }
-
 });
 
 async function getDictionary(wordCheck) {
@@ -609,12 +552,12 @@ async function getDictionary(wordCheck) {
       meaningNumber++;
       finalmeaningReturn.push(
         meaningNumber +
-        ") " +
-        "*Definition*: " +
-        "*`" +
-        dinhnghia.definition +
-        "`*" +
-        "\n"
+          ") " +
+          "*Definition*: " +
+          "*`" +
+          dinhnghia.definition +
+          "`*" +
+          "\n"
       );
       if (dinhnghia.example !== undefined) {
         finalmeaningReturn.push(`*Example*: ${dinhnghia.example}\n`);
@@ -638,7 +581,6 @@ async function getDictionary(wordCheck) {
   return finalmeaningReturn;
 }
 
-
 app.message(/^(d|D)\s[a-zA-Z]+/, async ({ body, message, say }) => {
   let {
     user,
@@ -652,9 +594,7 @@ app.message(/^(d|D)\s[a-zA-Z]+/, async ({ body, message, say }) => {
     parent_user_id,
   } = message;
 
-  if (onlyHandleIfIM(channel_type) ||
-    onlyHandleIfNotDeletingEvent(subtype)
-  ) {
+  if (onlyHandleIfIM(channel_type) || onlyHandleIfNotDeletingEvent(subtype)) {
     return;
   }
 
@@ -670,9 +610,7 @@ app.message(/^(d|D)\s[a-zA-Z]+/, async ({ body, message, say }) => {
   } catch (error) {
     console.error(error);
   }
-
 });
-
 
 //======================================================nytimes ======================================================
 let link = "https://kiwi.vietspeak.org/api/nytimes.php";
@@ -711,14 +649,11 @@ app.event("message", async ({ message, say }) => {
     parent_user_id,
   } = message;
 
-  if (onlyHandleIfIM(channel_type) ||
-    onlyHandleIfNotDeletingEvent(subtype)
-  ) {
+  if (onlyHandleIfIM(channel_type) || onlyHandleIfNotDeletingEvent(subtype)) {
     return;
   }
- 
- 
- if (onlyHandleFollowingSingleWord(text, ["ny"])) return;
+
+  if (onlyHandleFollowingSingleWord(text, ["ny"])) return;
 
   let dataReturnNYT = await getItem(randomIndex(10));
 
@@ -730,9 +665,7 @@ app.event("message", async ({ message, say }) => {
   } catch (error) {
     console.error(error);
   }
-
 });
-
 
 // ======================== economist =====================================================
 
@@ -743,11 +676,11 @@ let totalItem = 100;
 async function getEconomistExplain(url) {
   const economistResponse = await axios.get(url);
 
-  console.log(economistResponse)
+  console.log(economistResponse);
 
   let objectURL = economistResponse.data.channel.item;
   return {
-    objectURL
+    objectURL,
   };
 }
 
@@ -773,35 +706,21 @@ async function getItemEconomist(randomIndex) {
     articleBodyCombined,
     publishedDate,
     randomLink,
-    audio
+    audio,
   };
   return resultObject;
 }
 
+app.event("message", async ({ event, message, body, say }) => {
+  let { text, channel_type, user } = event;
 
-app.event("message", async ({
-  event,
-  message,
-  body,
-  say
-}) => {
-
-  let {
-    text,
-    channel_type,
-    user
-  } = event;
-  
-  
   if (onlyHandleFollowingSingleWord(text, ["e"])) return;
 
   if (onlyHandleIfIM(channel_type)) return;
   let randomIndexEconomist = randomIndex(totalItem);
   let dataReturn = await getItemEconomist(randomIndexEconomist);
 
-
-  let sayReturn =
-    `*\`${dataReturn.headline}\`*\n
+  let sayReturn = `*\`${dataReturn.headline}\`*\n
   _${dataReturn.description}_\n
   ${dataReturn.articleBodyCombined}\n
   Published: ${dataReturn.publishedDate}\n
@@ -811,7 +730,7 @@ app.event("message", async ({
   try {
     const result = await client.chat.postMessage({
       channel: user,
-      text: sayReturn
+      text: sayReturn,
     });
     console.log(result.ok);
   } catch (error) {
@@ -827,7 +746,8 @@ async function getAudioFileAxios(fileUrl, localFile) {
     method: "get",
     url: fileUrl,
     responseType: "stream",
-  }).then((response) => {//ensure that the user can call `then()` only when the file has been downloaded entirely.
+  }).then((response) => {
+    //ensure that the user can call `then()` only when the file has been downloaded entirely.
     return new Promise((resolve, reject) => {
       response.data.pipe(writer);
       let error = null;
@@ -847,25 +767,20 @@ async function getAudioFileAxios(fileUrl, localFile) {
   });
 }
 
-
 let channel9__vocabulary = "C01JCFU435G";
 
 async function postEconoMistNews() {
   try {
-
     let randomIndexEconomist = randomIndex(totalItem);
     let dataReturn = await getItemEconomist(randomIndexEconomist);
 
-
-    let sayReturn =
-      `${dataReturn.articleBodyCombined}\n
+    let sayReturn = `${dataReturn.articleBodyCombined}\n
     Published: ${dataReturn.publishedDate}\n
     Link: ${dataReturn.randomLink}
     `;
 
     await getAudioFileAxios(dataReturn.audio, "economist_audio.mp3");
     let thecomment = `Luyện tập tổng hợp với bản tin audio \n\n *${dataReturn.headline}*`;
-
 
     const file = "economist_audio.mp3";
 
@@ -887,13 +802,9 @@ async function postEconoMistNews() {
         text: sayReturn,
       });
       console.log(result.ok);
-
     } catch (error) {
-
       console.error(error);
     }
-
-
   } catch (error) {
     console.error(error);
   }
@@ -912,7 +823,6 @@ const jobPostEoconomist = schedule.scheduleJob(ruleEconomist, function () {
   postEconoMistNews();
 });
 
-
 // ========================================================================================================================================
 
 async function getIPA(wordInput) {
@@ -925,14 +835,7 @@ async function getIPA(wordInput) {
 
 app.event(
   "app_mention",
-  async ({
-    body,
-    event,
-    context,
-    client,
-    message,
-    say
-  }) => {
+  async ({ body, event, context, client, message, say }) => {
     let {
       client_msg_id,
       text,
@@ -976,14 +879,7 @@ app.event(
 
 app.event(
   "app_mention",
-  async ({
-    body,
-    event,
-    context,
-    client,
-    message,
-    say
-  }) => {
+  async ({ body, event, context, client, message, say }) => {
     let {
       client_msg_id,
       text,
@@ -1024,7 +920,6 @@ app.event(
     }
   }
 );
-
 
 // ==================================================bee===============================================
 async function getSpelling(indexID) {
@@ -1114,13 +1009,9 @@ async function getSpelling(indexID) {
 let listenningChallengesChannel = "C01CDAFCQ3B";
 async function postSpelling() {
   try {
-    const {
-      audio,
-      number,
-      transcript
-    } = await getSpelling(null);
+    const { audio, number, transcript } = await getSpelling(null);
 
-    await getAudioFileAxios(audio, "audio.mp3")
+    await getAudioFileAxios(audio, "audio.mp3");
     let welcomeMessageList = [
       "◦•●◉✿✿◉●•◦",
       "🌠🌠🌠",
@@ -1183,14 +1074,7 @@ function cleanText(textInput) {
 // ===========================================================SYNTAX CŨ CẦN MENTION==================================================
 app.event(
   "app_mention",
-  async ({
-    body,
-    event,
-    context,
-    client,
-    message,
-    say
-  }) => {
+  async ({ body, event, context, client, message, say }) => {
     let {
       client_msg_id,
       text,
@@ -1262,9 +1146,7 @@ app.event(
         return;
       }
 
-      const {
-        transcript
-      } = await getSpelling(questionID);
+      const { transcript } = await getSpelling(questionID);
       getMark = await checkMark(
         cleanText(textSubmission),
         cleanText(transcript)
@@ -1334,8 +1216,6 @@ app.event(
   }
 );
 
-
-
 function displayCachelAll() {
   let cacheAll = cache.all();
   console.log("-----cacheAll------- 982");
@@ -1344,14 +1224,7 @@ function displayCachelAll() {
 }
 
 ////////////=================================SYNTAX MỚI KHÔNG CẦN MENTION /=================================//////////////
-app.event("message", async ({
-  body,
-  event,
-  context,
-  client,
-  message,
-  say
-}) => {
+app.event("message", async ({ body, event, context, client, message, say }) => {
   let {
     client_msg_id,
     text,
@@ -1364,11 +1237,7 @@ app.event("message", async ({
     subtype,
   } = event;
 
-  let {
-    channel_type,
-    bot_id,
-    parent_user_id
-  } = message;
+  let { channel_type, bot_id, parent_user_id } = message;
 
   if (typeof subtype !== "undefined") {
     console.log(`subtype là ${subtype}`);
@@ -1446,9 +1315,7 @@ app.event("message", async ({
         return;
       }
 
-      const {
-        transcript
-      } = await getSpelling(questionID);
+      const { transcript } = await getSpelling(questionID);
       getMark = await checkMark(
         cleanText(textSubmission),
         cleanText(transcript)
@@ -1477,7 +1344,6 @@ app.event("message", async ({
         thread_ts: thread_ts,
         text: messageResult,
       });
-      
     } catch (error) {
       console.error(error);
     }
@@ -1491,8 +1357,10 @@ app.event("message", async ({
     const messageId = ts;
     const channelId = channel;
 
-    if (onlyHandlePublicEvent(channel_type) ||
-      onlyHandleIfNotDeletingEvent(subtype)) {
+    if (
+      onlyHandlePublicEvent(channel_type) ||
+      onlyHandleIfNotDeletingEvent(subtype)
+    ) {
       return;
     }
 
@@ -1573,7 +1441,7 @@ app.event("message", async ({
         // set cache người dùng hiện tại
         let currentUser = {
           id: user,
-          score: getMark
+          score: getMark,
         };
 
         myCache.set("currentUser", currentUser);
@@ -1640,7 +1508,7 @@ app.event("message", async ({
 
     return {
       trustAmount,
-      userChecked
+      userChecked,
     };
   };
 
@@ -1698,27 +1566,11 @@ app.event("message", async ({
       }
     }
   }
-
 });
 
 /*=============================================================trust_amount========================================================*/
-app.event("message", async ({
-  body,
-  event,
-  context,
-  client,
-  message
-}) => {
-  let {
-    user,
-    ts,
-    text,
-    channel,
-    channel_type,
-    subtype,
-    thread_ts,
-    bot_id
-  } =
+app.event("message", async ({ body, event, context, client, message }) => {
+  let { user, ts, text, channel, channel_type, subtype, thread_ts, bot_id } =
     message;
 
   if (
@@ -1763,17 +1615,13 @@ app.event("message", async ({
   };
 
   if (depositChange(text)) {
-    let {
-      sender,
-      receiver,
-      amount
-    } = depositChange(text);
+    let { sender, receiver, amount } = depositChange(text);
 
     if (typeof cache.getKey(sender) !== "undefined") {
       if (receiver != "U02N47DMKRR") {
         console.log(
           "1392: Không process vì người receiver không phải Will, là : " +
-          receiver
+            receiver
         );
         return;
       }
@@ -1797,7 +1645,7 @@ app.event("message", async ({
 
         console.log(
           " 1423: Không có dữ liệu Cache, gửi request check_trust của: " +
-          sender
+            sender
         );
       } catch (error) {
         console.error(error);
@@ -1832,11 +1680,7 @@ app.event("message", async ({
   };
 
   if (takeCoin(text)) {
-    let {
-      sender,
-      receiver,
-      amount
-    } = takeCoin(text);
+    let { sender, receiver, amount } = takeCoin(text);
 
     if (typeof cache.getKey(sender) !== "undefined") {
       let currentAmount = Number(cache.getKey(sender));
@@ -1855,7 +1699,7 @@ app.event("message", async ({
 
         console.log(
           " 1465: Không có dữ liệu Cache khi trừ  coin, gửi request check_trust của: " +
-          sender
+            sender
         );
       } catch (error) {
         console.error(error);
@@ -1864,16 +1708,8 @@ app.event("message", async ({
   }
 });
 
-
 //==========================================================GỬI TRANSCRIRIPT-==========================================================
-app.event("message", async ({
-  body,
-  event,
-  context,
-  client,
-  message,
-  say
-}) => {
+app.event("message", async ({ body, event, context, client, message, say }) => {
   let {
     client_msg_id,
     text,
@@ -1946,9 +1782,7 @@ app.event("message", async ({
   try {
     const questionID = await beeNumber();
 
-    let {
-      transcript
-    } = await getSpelling(questionID);
+    let { transcript } = await getSpelling(questionID);
     let transcriptClean = cleanText(transcript);
     const result = await client.chat.postMessage({
       channel: user,
@@ -1981,16 +1815,8 @@ app.event("message", async ({
   //end of xóa
 });
 
-
 /*===================================================================SENDING IPA AUDIO==============================================================*/
-app.event("message", async ({
-  body,
-  event,
-  context,
-  client,
-  message,
-  say
-}) => {
+app.event("message", async ({ body, event, context, client, message, say }) => {
   let {
     client_msg_id,
     text,
@@ -2106,14 +1932,7 @@ app.event("message", async ({
 });
 
 /*===================================================================RANDOM==============================================================*/
-app.event("message", async ({
-  body,
-  event,
-  context,
-  client,
-  message,
-  say
-}) => {
+app.event("message", async ({ body, event, context, client, message, say }) => {
   let {
     client_msg_id,
     text,
@@ -2156,8 +1975,9 @@ app.event("message", async ({
       if (typeof channel_type !== "undefined" && channel_type === "im") {
         const result = await client.chat.postMessage({
           channel: user,
-          text: `Hi <@${user}>, số ngẫu nhiên trong khoảng 0 tới 100 của bạn là ${randomIndex(100) + 1
-            }`,
+          text: `Hi <@${user}>, số ngẫu nhiên trong khoảng 0 tới 100 của bạn là ${
+            randomIndex(100) + 1
+          }`,
         });
 
         return;
@@ -2166,8 +1986,9 @@ app.event("message", async ({
       const result = await client.chat.postMessage({
         channel: channel,
         thread_ts: destination,
-        text: `Hi <@${user}>, số ngẫu nhiên trong khoảng 0 tới 100 của bạn là ${randomIndex(100) + 1
-          }`,
+        text: `Hi <@${user}>, số ngẫu nhiên trong khoảng 0 tới 100 của bạn là ${
+          randomIndex(100) + 1
+        }`,
       });
 
       console.log(result);
@@ -2177,16 +1998,8 @@ app.event("message", async ({
   }
 });
 
-
 //////////////////=================================///////////TRANSLATION//////////////////=================================//////////////
-app.event("message", async ({
-  body,
-  event,
-  context,
-  client,
-  message,
-  say
-}) => {
+app.event("message", async ({ body, event, context, client, message, say }) => {
   let {
     client_msg_id,
     text,
@@ -2224,16 +2037,14 @@ app.event("message", async ({
   let endpoint = "https://api.cognitive.microsofttranslator.com";
   let location = "southeastasia";
 
-  const translating = async (options = {
-    source,
-    target,
-    words
-  }) => {
-    let {
+  const translating = async (
+    options = {
       source,
       target,
-      words
-    } = options;
+      words,
+    }
+  ) => {
+    let { source, target, words } = options;
 
     const res = await axios({
       baseURL: endpoint,
@@ -2250,9 +2061,11 @@ app.event("message", async ({
         from: source,
         to: target,
       },
-      data: [{
-        text: words,
-      },],
+      data: [
+        {
+          text: words,
+        },
+      ],
       responseType: "json",
     });
 
@@ -2308,14 +2121,7 @@ app.event("message", async ({
 });
 
 ////////////////=================================/////////////ECHO RHYMES/////////////=================================///////////////////
-app.event("message", async ({
-  body,
-  event,
-  context,
-  client,
-  message,
-  say
-}) => {
+app.event("message", async ({ body, event, context, client, message, say }) => {
   let {
     client_msg_id,
     text,
@@ -2342,10 +2148,7 @@ app.event("message", async ({
 
   let soundWord = textArray[1];
 
-  let {
-    rhymes,
-    alliterations
-  } = rhymesVietSpeak(soundWord);
+  let { rhymes, alliterations } = rhymesVietSpeak(soundWord);
 
   const rhy = rhymes.map((e) => {
     return e.word;
@@ -2393,14 +2196,7 @@ app.event("message", async ({
 });
 
 ////////////////=================================/////////////SEND AUDIO - TEXT TO SPEECH /////////////////=================================///////////////
-app.event("message", async ({
-  body,
-  event,
-  context,
-  client,
-  message,
-  say
-}) => {
+app.event("message", async ({ body, event, context, client, message, say }) => {
   let {
     client_msg_id,
     text,
@@ -2442,7 +2238,7 @@ app.event("message", async ({
   const vi = {
     id: "vi-VN",
     male: "vi-VN-NamMinhNeural",
-    female: "vi-VN-HoaiMyNeural"
+    female: "vi-VN-HoaiMyNeural",
   };
 
   const en = {
@@ -2464,7 +2260,6 @@ app.event("message", async ({
     languageChoice.lang = vi.id;
     languageChoice.voice = vi.female;
   }
-
 
   if (english) {
     languageChoice.lang = en.us;
@@ -2585,22 +2380,10 @@ app.event("message", async ({
   }
 });
 
-
 //////////////=================================///////////////CHECK ĐIỂM SỐ KHI REACT EMOJI ///////////////////////////=================================///////////////////////]
 
-app.event("reaction_added", async ({
-  event,
-  context,
-  say
-}) => {
-  let {
-    type,
-    user,
-    item,
-    reaction,
-    item_user,
-    event_ts
-  } = event;
+app.event("reaction_added", async ({ event, context, say }) => {
+  let { type, user, item, reaction, item_user, event_ts } = event;
 
   if (item.channel != "C01BY57F29H") {
     return;
@@ -2619,10 +2402,7 @@ app.event("reaction_added", async ({
       limit: 1000, // get the main thread only
     });
 
-    let {
-      ts,
-      thread_ts
-    } = result.messages[0];
+    let { ts, thread_ts } = result.messages[0];
 
     //thread_ts khong co --> tuc dang trong main thread;
     if (typeof thread_ts === "undefined" || ts == thread_ts) {
@@ -2649,12 +2429,7 @@ app.event("reaction_added", async ({
         textFromVSB = textFromVietSpeakBot[0].text;
       }
 
-      let {
-        title,
-        transcription,
-        vtt,
-        url_private
-      } = fileDetail[0];
+      let { title, transcription, vtt, url_private } = fileDetail[0];
 
       if (typeof transcription === "undefined") {
         return;
@@ -2779,8 +2554,9 @@ async function postPhoneticChallenge() {
     return;
   }
 
-  let textOuput = `phonetic-challenge-${taoeba[randomIndexArray].index - 1
-    }.mp3`;
+  let textOuput = `phonetic-challenge-${
+    taoeba[randomIndexArray].index - 1
+  }.mp3`;
 
   let listenningChallengesChannel = "C01CDAFCQ3B"; //"C01CDAFCQ3B"; //("G01BPHWQ023" --> ban thong tin) C01J9D8RMD3==> channel 14
 
@@ -2803,9 +2579,7 @@ async function postPhoneticChallenge() {
 const rulePhonetics = new schedule.RecurrenceRule();
 rulePhonetics.second = [0];
 rulePhonetics.minute = [15];
-rulePhonetics.hour = [
-  6, 7, 8, 13, 14, 18, 19, 20, 21, 22,
-];
+rulePhonetics.hour = [6, 7, 8, 13, 14, 18, 19, 20, 21, 22];
 // rule.date = [1, 11, 21];
 rulePhonetics.tz = "Asia/Ho_Chi_Minh";
 
@@ -2813,17 +2587,8 @@ const jobPostPhonetics = schedule.scheduleJob(rulePhonetics, function () {
   postPhoneticChallenge();
 });
 
-
-
 /////////////////////////////TAOEBA PROJECT - CHECKING SUBMISION////////////////////////////////
-app.event("message", async ({
-  body,
-  event,
-  context,
-  client,
-  message,
-  say
-}) => {
+app.event("message", async ({ body, event, context, client, message, say }) => {
   let {
     client_msg_id,
     text,
@@ -2939,16 +2704,8 @@ app.event("message", async ({
   }
 });
 
-
 /////////////////////////////=================================THANOS --> deleting the thread=================================////////////////////////////////
-app.event("message", async ({
-  body,
-  event,
-  context,
-  client,
-  message,
-  say
-}) => {
+app.event("message", async ({ body, event, context, client, message, say }) => {
   let {
     client_msg_id,
     text,
@@ -3037,18 +2794,10 @@ app.event("message", async ({
   }
 });
 
-
 ///////////////////////////////////////=================================KIWI DAP AN=================================/////////////////////////////////////
 app.event(
   "app_mention",
-  async ({
-    body,
-    event,
-    context,
-    client,
-    message,
-    say
-  }) => {
+  async ({ body, event, context, client, message, say }) => {
     let {
       client_msg_id,
       text,
@@ -3104,9 +2853,7 @@ app.event(
 
     try {
       const questionID = await beeNumber();
-      let {
-        transcript
-      } = await getSpelling(questionID);
+      let { transcript } = await getSpelling(questionID);
       let transcriptClean = cleanText(transcript);
 
       // https://api.slack.com/methods/chat.postMessage/test --> nếu gửi dm cho user, thay channel bằng ID username U01C3SA99FW  (William)
@@ -3141,51 +2888,34 @@ app.event(
   }
 );
 
-
-
 // ===================================================OBJECTIVE TEST LISTENING TO ACTION --> WORK IN PROGRESS ===============================================
 
-app.action("block_actions", async ({
-  ack
-}) => {
+app.action("block_actions", async ({ ack }) => {
   await ack();
 
   console.log("testing action click on button");
-
 });
 
+app.event("message", async ({ body, event, context, client, message }) => {
+  let {
+    user,
+    ts,
+    text,
+    thread_ts,
+    subtype,
+    channel,
+    channel_type,
+    bot_id,
+    parent_user_id,
+  } = message;
 
-app.event("message",
-  async ({
-    body,
-    event,
-    context,
-    client,
-    message
-  }) => {
-    let {
-      user,
-      ts,
-      text,
-      thread_ts,
-      subtype,
-      channel,
-      channel_type,
-      bot_id,
-      parent_user_id,
-    } = message;
+  if (onlyHandleFollowingSingleWord(text, ["vuong"])) return;
 
+  if (onlyHandleIfIM(channel_type) || onlyHandleIfNotDeletingEvent(subtype)) {
+    return;
+  }
 
-    if (onlyHandleFollowingSingleWord(text, ["vuong"])) return;
-
-
-    if (onlyHandleIfIM(channel_type) ||
-      onlyHandleIfNotDeletingEvent(subtype)
-    ) {
-      return;
-    }
-    
-    let blockContent = `[
+  let blockContent = `[
 		{
 			"type": "section",
 			"text": {
@@ -3214,21 +2944,18 @@ app.event("message",
 				}
 			]
 		}
-	]`
+	]`;
 
-    try {
-      const result = await client.chat.postMessage({
-        channel: user,
-        text: "hello world",
-        blocks: blockContent
-      });
-    } catch (error) {
-      console.error(error);
-    }
+  try {
+    const result = await client.chat.postMessage({
+      channel: user,
+      text: "hello world",
+      blocks: blockContent,
+    });
+  } catch (error) {
+    console.error(error);
   }
-);
-
-
+});
 
 // ===================================================ENDING TASK===============================================
 
@@ -3237,11 +2964,11 @@ function getRandomQuoteEndingTask(Randomeindex) {
 }
 
 async function postMessageEndingTask() {
-
   let task_minus = getCurrentTask(currentTimeStamp()) - 1;
 
   let dataSentObject = {
-    text: " *`=======🔥🔥🔥TASK ENDED🔥🔥🔥=======`* \nNhững bài nộp sau thanh này sẽ tính là không nộp bài cho task " +
+    text:
+      " *`=======🔥🔥🔥TASK ENDED🔥🔥🔥=======`* \nNhững bài nộp sau thanh này sẽ tính là không nộp bài cho task " +
       task_minus +
       " 😊😊😊. \n\n" +
       getRandomQuoteEndingTask(randomIndex(quoteCount)),
@@ -3267,21 +2994,12 @@ ruleEndingTask.tz = "Asia/Ho_Chi_Minh";
 
 const jobEndingTask = schedule.scheduleJob(ruleEndingTask, function () {
   postMessageEndingTask();
-
 });
-
 
 /*============================================================================================================================*/
 app.event(
   "app_mention",
-  async ({
-    body,
-    event,
-    context,
-    client,
-    message,
-    say
-  }) => {
+  async ({ body, event, context, client, message, say }) => {
     let {
       client_msg_id,
       text,
@@ -3331,14 +3049,7 @@ app.event(
 );
 
 /*======================================= SEND THE TRANSCRIPT  =====================================================*/
-app.event("message", async ({
-  body,
-  event,
-  context,
-  client,
-  message,
-  say
-}) => {
+app.event("message", async ({ body, event, context, client, message, say }) => {
   let {
     client_msg_id,
     text,
@@ -3374,20 +3085,20 @@ app.event("message", async ({
     return;
   }
 
-
   let linkAPI = `https://api.vietspeak.org/v1/task/transcript.php`;
 
   const response = await axios.get(linkAPI);
 
   let task_number_tracking = getCurrentTask(currentTimeStamp());
 
-  const currentTranscript = response.data.find((element) => element.fields.task_number == task_number_tracking);
-
+  const currentTranscript = response.data.find(
+    (element) => element.fields.task_number == task_number_tracking
+  );
 
   let outputTranScript = currentTranscript.fields[textSubmission];
 
   if (typeof outputTranScript === "undefined") {
-    outputTranScript = "Hiện chưa có transcript mà bạn đang yêu cầu."
+    outputTranScript = "Hiện chưa có transcript mà bạn đang yêu cầu.";
   }
 
   try {
@@ -3398,15 +3109,14 @@ app.event("message", async ({
     const result = await client.chat.postMessage({
       channel: channel,
       thread_ts: ts,
-      text: outputTranScript
+      text: outputTranScript,
     });
 
     console.log(result.ok);
 
-
     await later(2000);
 
-    //Deleting the keyword people type    
+    //Deleting the keyword people type
     const deleting_result = await clientUser.chat.delete({
       channel: channel,
       ts: ts,
@@ -3414,12 +3124,10 @@ app.event("message", async ({
     });
 
     console.log(`Adding the transcript by ${user}`);
-
   } catch (error) {
     console.error(error);
   }
 });
-
 
 /*======================================= STORE USER TO DATABASE CLOUDANT NOSQL  =====================================================*/
 const createDbAndDoc = async (dbName, documentId, documentCreated) => {
@@ -3434,7 +3142,6 @@ const createDbAndDoc = async (dbName, documentId, documentCreated) => {
       console.log(`"${dbName}" database created.`);
     }
   } catch (err) {
-
     if (err.code === 412) {
       console.log(`Cannot create "${dbName}" database, it already exists.`);
     }
@@ -3443,10 +3150,9 @@ const createDbAndDoc = async (dbName, documentId, documentCreated) => {
   // Setting `_id` for the document is optional when "postDocument" function is used for CREATE.
   //   // When `_id` is not provided the server will generate one for your document.
   let insertData = {
-    _id: documentId
+    _id: documentId,
   };
-  insertData.user = documentCreated
-
+  insertData.user = documentCreated;
 
   // Save the document in the database with "postDocument" function
   const createDocumentResponse = await clientcloudant.postDocument({
@@ -3454,25 +3160,16 @@ const createDbAndDoc = async (dbName, documentId, documentCreated) => {
     document: insertData,
   });
 
-
   // is necessary for further UPDATE/DELETE operations:
   documentCreated._rev = createDocumentResponse.result.rev;
 
   console.log(
     "You have created the document:\n" +
-    JSON.stringify(documentCreated, null, 2)
+      JSON.stringify(documentCreated, null, 2)
   );
 };
 
-
-app.event("message", async ({
-  body,
-  event,
-  context,
-  client,
-  message,
-  say
-}) => {
+app.event("message", async ({ body, event, context, client, message, say }) => {
   let {
     client_msg_id,
     text,
@@ -3502,58 +3199,52 @@ app.event("message", async ({
 
   let usersStore = {};
   function saveUsers(usersArray) {
-    let userId = '';
+    let userId = "";
 
     usersArray.forEach(function (user) {
       userId = user["id"];
       usersStore[userId] = {};
-      usersStore[userId].name = user["name"]
-      usersStore[userId].slackId = userId
+      usersStore[userId].name = user["name"];
+      usersStore[userId].slackId = userId;
       usersStore[userId].real_name = user["profile"]["real_name"];
-      usersStore[userId].deleted = user["deleted"]
-      usersStore[userId].last_time_deactivated = user["updated"]
-      usersStore[userId].following = []
-      usersStore[userId].followers = []
+      usersStore[userId].deleted = user["deleted"];
+      usersStore[userId].last_time_deactivated = user["updated"];
+      usersStore[userId].following = [];
+      usersStore[userId].followers = [];
       usersStore[userId].anonymous = "me_" + nanoid();
       usersStore[userId].changeanonymous = false;
       usersStore[userId].backup = false;
       usersStore[userId].saveme = false;
     });
-
   }
 
   try {
-
     async function getUserList() {
-      let resultList = []
+      let resultList = [];
       let condition = false;
 
       let x = 0;
       do {
         x++;
 
-        console.log(x)
+        console.log(x);
 
         if (condition === false) {
           const result = await client.users.list({
-            limit: 1000
-          })
+            limit: 1000,
+          });
 
           resultList.push(result.members);
           condition = result.response_metadata.next_cursor ?? false;
-
         } else {
-
           const result = await client.users.list({
             cursor: condition,
-            limit: 1000
-          })
+            limit: 1000,
+          });
           resultList.push(result.members);
-
 
           condition = result.response_metadata.next_cursor ?? false;
         }
-
       } while (condition != false);
 
       return resultList;
@@ -3562,129 +3253,113 @@ app.event("message", async ({
     let resultUser = await getUserList();
     resultUser = resultUser.flat();
     saveUsers(resultUser);
-    await createDbAndDoc("users", "vietspeak_user", usersStore)
+    await createDbAndDoc("users", "vietspeak_user", usersStore);
 
-    console.log("Save users to the Cloudant")
-
+    console.log("Save users to the Cloudant");
   } catch (error) {
     console.error(error);
   }
-
 });
 
 /*======================================= UPDATING USER EVENT  =====================================================*/
-app.event("user_change", async ({
-  body,
-  event,
-  context,
-  client,
-  message,
-  say
-}) => {
+app.event(
+  "user_change",
+  async ({ body, event, context, client, message, say }) => {
+    let { id, deleted, real_name, name, updated } = event.user;
 
-  let {
-    id,
-    deleted,
-    real_name,
-    name,
-    updated
+    let sayReturn;
 
-  } = event.user;
+    if (deleted) {
+      sayReturn = "disabled: " + id + " - " + name;
+    } else {
+      sayReturn = "activate " + id + " - " + name + " - " + real_name;
+    }
 
-  let sayReturn;
+    const updatingVietSpeakUser = async (dbName, docID, userID) => {
+      try {
+        const document = (
+          await clientcloudant.getDocument({
+            docId: docID,
+            db: dbName,
+          })
+        ).result;
 
-  if (deleted) {
-    sayReturn = "disabled: " + id + " - " + name
-  } else {
-    sayReturn = "activate " + id + " - " + name + " - " + real_name
-  }
+        let { user } = document;
+        if (user.hasOwnProperty(userID)) {
+          document.user[userID].deleted = deleted;
+          document.user[userID].last_time_deactivated = updated;
+          if (deleted == false) {
+            document.user[userID].real_name = real_name;
+          }
 
-  const updatingVietSpeakUser = async (dbName, docID, userID) => {
-    try {
+          document._rev = (
+            await clientcloudant.postDocument({
+              db: dbName,
+              document, // _id and _rev MUST be inside the document object
+            })
+          ).result.rev;
+          console.log(
+            "=========== UPDATING USER IN THE DATABASE: ===========: " +
+              userID +
+              " - " +
+              real_name
+          );
+        } else {
+          let real_name_property = real_name ?? name;
+          document.user[userID] = {};
+          document.user[userID].name = name;
+          document.user[userID].slackId = userID;
+          document.user[userID].real_name = real_name_property;
+          document.user[userID].last_time_deactivated = updated;
+          document.user[userID].deleted = deleted;
+          document.user[userID].following = [];
+          document.user[userID].followers = [];
+          document.user[userID].followers = [];
+          document.user[userID].anonymous = "me_" + nanoid();
+          document.user[userID].changeanonymous = false;
+          document.user[userID].backup = false;
+          document.user[userID].saveme = false;
+          document.user[userID].message = "";
+          document.user[userID].volunteer = false;
 
-      const document = (
-        await clientcloudant.getDocument({
-          docId: docID,
-          db: dbName,
-        })
-      ).result;
-
-      let {
-        user
-      } = document;
-      if (user.hasOwnProperty(userID)) {
-        document.user[userID].deleted = deleted;
-        document.user[userID].last_time_deactivated = updated;
-        if (deleted == false) {
-          document.user[userID].real_name = real_name
+          document._rev = (
+            await clientcloudant.postDocument({
+              db: dbName,
+              document, // _id and _rev MUST be inside the document object
+            })
+          ).result.rev;
+          console.log(
+            "=========== CREATING NEW USER IN THE DATABASE: ===========" +
+              userID +
+              " - " +
+              real_name
+          );
         }
-
-        document._rev = (
-          await clientcloudant.postDocument({
-            db: dbName,
-            document, // _id and _rev MUST be inside the document object
-          })
-        ).result.rev;
-        console.log("=========== UPDATING USER IN THE DATABASE: ===========: " + userID + " - " + real_name);
-      } else {
-        let real_name_property = real_name ?? name
-        document.user[userID] = {}
-        document.user[userID].name = name;
-        document.user[userID].slackId = userID;
-        document.user[userID].real_name = real_name_property;
-        document.user[userID].last_time_deactivated = updated;
-        document.user[userID].deleted = deleted;
-        document.user[userID].following = [];
-        document.user[userID].followers = [];
-        document.user[userID].followers = [];
-        document.user[userID].anonymous = "me_" + nanoid();
-        document.user[userID].changeanonymous = false;
-        document.user[userID].backup = false;
-        document.user[userID].saveme = false;
-        document.user[userID].message = "";
-        document.user[userID].volunteer = false;
-
-        document._rev = (
-          await clientcloudant.postDocument({
-            db: dbName,
-            document, // _id and _rev MUST be inside the document object
-          })
-        ).result.rev;
-        console.log("=========== CREATING NEW USER IN THE DATABASE: ===========" + userID + " - " + real_name)
+      } catch (err) {
+        if (err.code === 404) {
+          console.log(
+            `Cannot update document because either "${dbName}" database or the "document" ` +
+              `document was not found.`
+          );
+        }
       }
+    };
 
-    } catch (err) {
-      if (err.code === 404) {
-        console.log(
-          `Cannot update document because either "${dbName}" database or the "document" ` + `document was not found.`
-        );
-      }
+    try {
+      await updatingVietSpeakUser("users", "vietspeak_user", id);
+      const result = await client.chat.postMessage({
+        channel: "U01C3SA99FW",
+        text: sayReturn,
+      });
+      console.log(result.ok);
+    } catch (error) {
+      console.error(error);
     }
   }
-
-  try {
-    await updatingVietSpeakUser("users", "vietspeak_user", id)
-    const result = await client.chat.postMessage({
-      channel: 'U01C3SA99FW',
-      text: sayReturn,
-    });
-    console.log(result.ok);
-
-  } catch (error) {
-    console.error(error);
-  }
-
-});
+);
 
 /*======================================= ABOUT ME =====================================================*/
-app.event("message", async ({
-  body,
-  event,
-  context,
-  client,
-  message,
-  say
-}) => {
+app.event("message", async ({ body, event, context, client, message, say }) => {
   let {
     client_msg_id,
     text,
@@ -3713,10 +3388,9 @@ app.event("message", async ({
   }
 
   const getInfoFromExistingDatabase = async (userID = "") => {
-
     const dbName = "users";
     const dbInfo = await clientcloudant.getDatabaseInformation({
-      db: dbName
+      db: dbName,
     });
     const documentCount = dbInfo.result.doc_count;
     const dbNameResult = dbInfo.result.db_name;
@@ -3730,49 +3404,50 @@ app.event("message", async ({
       docId: "vietspeak_user",
     };
     const documentAboutZebra = await clientcloudant.getDocument(getDocParams);
-    const {
-      result
-    } = documentAboutZebra;
+    const { result } = documentAboutZebra;
 
     console.log(result.user[userID]);
 
-    return result.user[userID]
-
+    return result.user[userID];
   };
 
   try {
-
     let aboutMe = await getInfoFromExistingDatabase(user);
 
     let followingList = aboutMe.following;
-    
-    let follower = aboutMe.followers;
-    
-    let volunteer = aboutMe.volunteer;
-    
-    if (volunteer == true) {
-      volunteer = `\n\nBạn có thuộc nhóm volunteer hay không? Có.`
-    } else {
-      volunteer = `\n\nBạn có thuộc nhóm volunteer hay không? Không. Soạn "volunteer" và gửi tới Kiwi để tham gia tình nguyện giúp đỡ các bạn khác!`
-    }
-    
-    if (followingList.length > 0) {
-      followingList = followingList.map((e) => `<@${e}>`)
 
-      followingList = `\n\nBạn đang follow ${followingList.length} người: ${followingList.join(", ")}`
+    let follower = aboutMe.followers;
+
+    let volunteer = aboutMe.volunteer;
+
+    if (volunteer == true) {
+      volunteer = `\n\nBạn có thuộc nhóm volunteer hay không? Có.`;
     } else {
-      followingList = "\n\nFollowing: 0. Hãy soạn follow và mention người bạn muốn follow. Soạn unfollow và mention nếu muốn dừng follow ai đó.";
+      volunteer = `\n\nBạn có thuộc nhóm volunteer hay không? Không. Soạn "volunteer" và gửi tới Kiwi để tham gia tình nguyện giúp đỡ các bạn khác!`;
+    }
+
+    if (followingList.length > 0) {
+      followingList = followingList.map((e) => `<@${e}>`);
+
+      followingList = `\n\nBạn đang follow ${
+        followingList.length
+      } người: ${followingList.join(", ")}`;
+    } else {
+      followingList =
+        "\n\nFollowing: 0. Hãy soạn follow và mention người bạn muốn follow. Soạn unfollow và mention nếu muốn dừng follow ai đó.";
     }
 
     if (follower.length > 0) {
-      follower = `\n\nBạn đang có ${follower.length} followers.`
+      follower = `\n\nBạn đang có ${follower.length} followers.`;
     } else {
-      follower = "\n\nFollower: 0"
+      follower = "\n\nFollower: 0";
     }
 
-    let updateandanh = aboutMe.changeanonymous ? "" : `\n\nBạn có thể thay đổi id ẩn danh của mình *\`MỘT LẦN\`* bằng cách soạn me_yourid và gửi tới KIWI! Chú ý yourid cần nhiều hơn 4 kí tự và ít hơn 40 kí tự, không viết hoa, không có dấu tiếng Việt, không khoảng cách giữa các kí tự, có thể dùng số và chữ`
+    let updateandanh = aboutMe.changeanonymous
+      ? ""
+      : `\n\nBạn có thể thay đổi id ẩn danh của mình *\`MỘT LẦN\`* bằng cách soạn me_yourid và gửi tới KIWI! Chú ý yourid cần nhiều hơn 4 kí tự và ít hơn 40 kí tự, không viết hoa, không có dấu tiếng Việt, không khoảng cách giữa các kí tự, có thể dùng số và chữ`;
 
-    let textOutput = `Hello <@${user}> \n\nTên hiển thị của bạn là: *\`${aboutMe.real_name}\`* \n\n ID ẩn danh của bạn là: *\`${aboutMe.anonymous}\`* ${updateandanh} ${followingList} ${follower} ${volunteer}`
+    let textOutput = `Hello <@${user}> \n\nTên hiển thị của bạn là: *\`${aboutMe.real_name}\`* \n\n ID ẩn danh của bạn là: *\`${aboutMe.anonymous}\`* ${updateandanh} ${followingList} ${follower} ${volunteer}`;
     const result = await client.chat.postMessage({
       channel: user,
       text: textOutput,
@@ -3780,24 +3455,11 @@ app.event("message", async ({
   } catch (error) {
     console.error(error);
   }
-
 });
 
 /*======================================= UPDATING ANONYMOUS ID  =====================================================*/
-app.event("message", async ({
-  body,
-  event,
-  context,
-  client,
-  message,
-  say
-}) => {
-
-  let {
-    text,
-    user,
-    channel_type
-  } = message;
+app.event("message", async ({ body, event, context, client, message, say }) => {
+  let { text, user, channel_type } = message;
 
   // if(development(user, event)) return;
 
@@ -3809,11 +3471,9 @@ app.event("message", async ({
   let error = false;
   let errorMessage;
   const updatingPrivateID = async (dbName, docID, userID) => {
-
     let handle;
 
     try {
-
       const document = (
         await clientcloudant.getDocument({
           docId: docID,
@@ -3821,24 +3481,18 @@ app.event("message", async ({
         })
       ).result;
 
-      let {
-        user
-      } = document;
+      let { user } = document;
 
       let listofID = [];
 
       for (let u in user) {
-        listofID.push(user[u].anonymous)
+        listofID.push(user[u].anonymous);
       }
 
       if (user.hasOwnProperty(userID)) {
-
         if (user[userID].changeanonymous == true) {
-
           handle = user[userID].anonymous;
-
         } else {
-
           if (arrayText[1].length < 1) {
             error = true;
             errorMessage = "Bạn chưa nhập id sau me_";
@@ -3847,20 +3501,22 @@ app.event("message", async ({
           }
           if (arrayText[1].length < 4 || arrayText[1].length > 40) {
             error = true;
-            errorMessage = "ID sau me_ cần có từ 4 kí tự trở lên và không dài quá 40 kí tự";
+            errorMessage =
+              "ID sau me_ cần có từ 4 kí tự trở lên và không dài quá 40 kí tự";
             handle = false;
             return;
           }
           if (!allowingString(arrayText[1])) {
             error = true;
-            errorMessage = "ID sau me_của bạn không được chứa khoảng trống, tiếng Việt có dấu hoặc kí tự lạ ngoại từ - và _";
+            errorMessage =
+              "ID sau me_của bạn không được chứa khoảng trống, tiếng Việt có dấu hoặc kí tự lạ ngoại từ - và _";
             handle = false;
             return;
           }
           if (listofID.includes(text) == true) {
-            console.log("có trùng")
+            console.log("có trùng");
             error = true;
-            errorMessage = "ID bạn vừa chọn đã có người sử dụng"
+            errorMessage = "ID bạn vừa chọn đã có người sử dụng";
             handle = false;
             return;
           }
@@ -3875,35 +3531,36 @@ app.event("message", async ({
             })
           ).result.rev;
           handle = false;
-
         }
-        console.log("=========== UPDATING annonymous ID IN THE DATABASE: ===========: " + userID + " - ");
+        console.log(
+          "=========== UPDATING annonymous ID IN THE DATABASE: ===========: " +
+            userID +
+            " - "
+        );
       }
 
       return handle;
-
     } catch (err) {
       if (err.code === 404) {
         console.log(
-          `Cannot update document because either "${dbName}" database or the "document" ` + `document was not found.`
+          `Cannot update document because either "${dbName}" database or the "document" ` +
+            `document was not found.`
         );
       }
     }
-  }
+  };
 
   try {
     let sayReturn;
     let waithandle = await updatingPrivateID("users", "vietspeak_user", user);
     if (waithandle !== false) {
-      sayReturn = "ID ẩn danh của bạn đã được thiết lập  : " + waithandle
+      sayReturn = "ID ẩn danh của bạn đã được thiết lập  : " + waithandle;
     } else {
-
       if (error) {
-        sayReturn = errorMessage
+        sayReturn = errorMessage;
       } else {
-        sayReturn = "ID ẩn danh mới của bạn là :" + text
+        sayReturn = "ID ẩn danh mới của bạn là :" + text;
       }
-
     }
 
     const result = await client.chat.postMessage({
@@ -3911,29 +3568,15 @@ app.event("message", async ({
       text: error ? errorMessage : sayReturn,
     });
     console.log(result.ok);
-
   } catch (error) {
     console.error(error);
   }
-
 });
 
 // https://github.com/IBM/cloudant-node-sdk
 /*======================================= FOLLOWING, FOLLOWER =====================================================*/
-app.event("message", async ({
-  body,
-  event,
-  context,
-  client,
-  message,
-  say
-}) => {
-
-  let {
-    text,
-    user,
-    channel_type
-  } = message;
+app.event("message", async ({ body, event, context, client, message, say }) => {
+  let { text, user, channel_type } = message;
 
   // if(development(user, event)) return;
 
@@ -3941,18 +3584,17 @@ app.event("message", async ({
 
   if (typeof text === "undefined") return;
 
-
   function validateAndGetFollowList(str) {
-    let lowercase = str.trim().toLowerCase()
-    const userToFollow = []
+    let lowercase = str.trim().toLowerCase();
+    const userToFollow = [];
     if (!lowercase.includes("unfollow")) {
       if (!lowercase.includes("follow")) {
         return false;
       } else {
-        userToFollow.push("follow")
+        userToFollow.push("follow");
       }
     } else {
-      userToFollow.push("unfollow")
+      userToFollow.push("unfollow");
     }
 
     const indexes = [];
@@ -3965,12 +3607,11 @@ app.event("message", async ({
     if (indexes.length > 0) {
       indexes.forEach((e) => {
         userToFollow.push(str.substring(e + 2, e + 13));
-      })
+      });
       return userToFollow;
     } else {
-      return false
+      return false;
     }
-
   }
 
   if (validateAndGetFollowList(text) === false) return;
@@ -3978,11 +3619,10 @@ app.event("message", async ({
   let error = false;
   let errorMessage;
   let currentList;
-  let resultDisplay = {}
+  let resultDisplay = {};
 
   const updatingFollower = async (dbName, docID, userID) => {
     try {
-
       const document = (
         await clientcloudant.getDocument({
           docId: docID,
@@ -3990,9 +3630,7 @@ app.event("message", async ({
         })
       ).result;
 
-      let {
-        user
-      } = document;
+      let { user } = document;
 
       if (user.hasOwnProperty(userID)) {
         let listToFollow = validateAndGetFollowList(text);
@@ -4000,59 +3638,53 @@ app.event("message", async ({
         currentList = user[userID].following;
 
         if (firstElement === "follow") {
-          let listNotification = []
+          let listNotification = [];
 
           listToFollow.forEach((e) => {
             if (!currentList.includes(e)) {
-              user[userID].following.push(e)
-              user[e].followers.push(user[userID].slackId)
+              user[userID].following.push(e);
+              user[e].followers.push(user[userID].slackId);
 
-              listNotification.push(user[e])
+              listNotification.push(user[e]);
             }
-
-          })
+          });
 
           listNotification.forEach(async function (each) {
             try {
-
-              let saying = "Bạn vừa có một follower mới trên VietSpeak"
+              let saying = "Bạn vừa có một follower mới trên VietSpeak";
               const result = await client.chat.postMessage({
                 channel: each.slackId,
                 text: saying,
               });
               console.log(result.ok);
-
             } catch (error) {
               console.error(error);
             }
-
-          })
-
+          });
         } else {
-          let listtodelete = []
+          let listtodelete = [];
           currentList.forEach((e, index) => {
             listToFollow.forEach((each) => {
               if (e == each) {
-                listtodelete.push(index)
+                listtodelete.push(index);
               }
-            })
-          })
+            });
+          });
 
-          let originalList = [...currentList]
+          let originalList = [...currentList];
           for (let i = listtodelete.length - 1; i >= 0; i--) {
             currentList.splice(listtodelete[i], 1);
           }
 
           listToFollow.forEach((e) => {
-            console.log(user[e].followers)
+            console.log(user[e].followers);
             let indexRemove = user[e].followers.indexOf(userID);
-            user[e].followers.splice(indexRemove, 1)
-            console.log(user[e].followers)
-          })
-
+            user[e].followers.splice(indexRemove, 1);
+            console.log(user[e].followers);
+          });
         }
 
-        resultDisplay.total = currentList.length
+        resultDisplay.total = currentList.length;
 
         document._rev = (
           await clientcloudant.postDocument({
@@ -4061,18 +3693,22 @@ app.event("message", async ({
           })
         ).result.rev;
 
-        console.log("=========== UPDATING FOLLOWING IN THE DATABASE: ===========: " + userID + " - ");
+        console.log(
+          "=========== UPDATING FOLLOWING IN THE DATABASE: ===========: " +
+            userID +
+            " - "
+        );
       }
       return resultDisplay;
-
     } catch (err) {
       if (err.code === 404) {
         console.log(
-          `Cannot update document because either "${dbName}" database or the "document" ` + `document was not found.`
+          `Cannot update document because either "${dbName}" database or the "document" ` +
+            `document was not found.`
         );
       }
     }
-  }
+  };
 
   try {
     let waithandle = await updatingFollower("users", "vietspeak_user", user);
@@ -4082,11 +3718,9 @@ app.event("message", async ({
       text: saying,
     });
     console.log(result.ok);
-
   } catch (error) {
     console.error(error);
   }
-
 });
 
 /*=================================================================TRACKING SUBMISION ===================================================================*/
@@ -4094,20 +3728,18 @@ function getLevel(title = "", text = "") {
   let level = ["yellow", "green", "blue", "red"];
   if (typeof title !== "undefined") {
     title = title.trim().toLowerCase();
-    let filter = level.filter((e) => title.includes(e))
+    let filter = level.filter((e) => title.includes(e));
     if (filter.length === 1) {
-      return filter[0]
+      return filter[0];
     }
-
   }
 
   if (typeof text !== "undefined") {
     text = text.trim().toLowerCase();
-    let filter = level.filter((e) => text.includes(e))
+    let filter = level.filter((e) => text.includes(e));
     if (filter.length === 1) {
-      return filter[0]
+      return filter[0];
     }
-
   }
   return "unknown";
 }
@@ -4118,21 +3750,22 @@ const checkIfDocumentExisting = async (dbName, documentID) => {
       docId: documentID,
       db: dbName,
     });
-    console.log("document existing")
+    console.log("document existing");
     return true;
-
   } catch (err) {
     if (err.code === 404) {
       return false;
-      console.log(
-        `there is no document with id: ` + documentID
-      );
+      console.log(`there is no document with id: ` + documentID);
     }
   }
 };
 
-
-const tracking_createOrupdateDocIfExist = async (dbName, docID, user, dataUpdate = {}) => {
+const tracking_createOrupdateDocIfExist = async (
+  dbName,
+  docID,
+  user,
+  dataUpdate = {}
+) => {
   try {
     const document = (
       await clientcloudant.getDocument({
@@ -4141,12 +3774,9 @@ const tracking_createOrupdateDocIfExist = async (dbName, docID, user, dataUpdate
       })
     ).result;
 
-    let {
-      userSumitted
-    } = document;
+    let { userSumitted } = document;
 
     if (userSumitted.hasOwnProperty(user)) {
-
       document.userSumitted[user].level.push(dataUpdate[user].level[0]);
 
       document._rev = (
@@ -4159,14 +3789,12 @@ const tracking_createOrupdateDocIfExist = async (dbName, docID, user, dataUpdate
       console.log(
         `You have updated the document:\n${JSON.stringify(document, null, 2)}`
       );
-      console.log("người đã nộp bài")
-
+      console.log("người đã nộp bài");
     } else {
+      document.userSumitted[user] = {};
+      document.userSumitted[user].level = [dataUpdate[user].level[0]];
 
-      document.userSumitted[user] = {}
-      document.userSumitted[user].level = [dataUpdate[user].level[0]]
-
-      console.log(document.userSumitted[user])
+      console.log(document.userSumitted[user]);
 
       document._rev = (
         await clientcloudant.postDocument({
@@ -4179,24 +3807,26 @@ const tracking_createOrupdateDocIfExist = async (dbName, docID, user, dataUpdate
         `You have updated the document:\n${JSON.stringify(document, null, 2)}`
       );
     }
-
   } catch (err) {
     if (err.code === 404) {
       console.log(
         `Cannot update document because either "${dbName}" database or the "document" ` +
-        `document was not found.`
+          `document was not found.`
       );
     }
   }
-}
+};
 
-const tracking_createNewTask = async (dbName, task_id, documentCreated = {}) => {
+const tracking_createNewTask = async (
+  dbName,
+  task_id,
+  documentCreated = {}
+) => {
   try {
-
     let insertData = {
-      _id: task_id
+      _id: task_id,
     };
-    insertData.userSumitted = documentCreated
+    insertData.userSumitted = documentCreated;
 
     const createDocumentResponse = await clientcloudant.postDocument({
       db: dbName,
@@ -4206,38 +3836,21 @@ const tracking_createNewTask = async (dbName, task_id, documentCreated = {}) => 
     documentCreated._rev = createDocumentResponse.result.rev;
     console.log(
       "You have created the document:\n" +
-      JSON.stringify(documentCreated, null, 2)
+        JSON.stringify(documentCreated, null, 2)
     );
-
   } catch (err) {
     if (err.code === 404) {
       console.log(
         `Cannot update creat document because either "${dbName}" database or the "document" ` +
-        `document was not found.`
+          `document was not found.`
       );
     }
   }
-}
+};
 
-app.event("message", async ({
-  body,
-  event,
-  context,
-  client,
-  message
-}) => {
-  let {
-    subtype,
-    files,
-    thread_ts
-  } = event;
-  let {
-    user,
-    ts,
-    text,
-    channel,
-    channel_type
-  } = message;
+app.event("message", async ({ body, event, context, client, message }) => {
+  let { subtype, files, thread_ts } = event;
+  let { user, ts, text, channel, channel_type } = message;
 
   if (typeof channel_type === "undefined") {
     console.log("không có channel_type");
@@ -4245,7 +3858,8 @@ app.event("message", async ({
   }
 
   //if(development(user, event)) return;
-  if (onlyHandleMainThreadEvent(thread_ts) ||
+  if (
+    onlyHandleMainThreadEvent(thread_ts) ||
     onlyHandlePublicEvent(channel_type) ||
     onlyHandleIfUploadFile(files) ||
     onlyHandleIfNotBot(user) ||
@@ -4265,7 +3879,6 @@ app.event("message", async ({
     id,
   } = files[0];
 
-
   let color = getLevel(title, text);
 
   if (typeof display_as_bot !== "undefined" && display_as_bot) {
@@ -4278,64 +3891,50 @@ app.event("message", async ({
     if (suptype === "message_deleted" || suptype === "message_changed") return;
   }
 
-  let task_existing = await checkIfDocumentExisting("tracking", taskNumber)
-  let dataUpdate = {}
-  dataUpdate[user] = {}
+  let task_existing = await checkIfDocumentExisting("tracking", taskNumber);
+  let dataUpdate = {};
+  dataUpdate[user] = {};
 
   let levelStore = {};
 
-  levelStore[color] = currentTimeStamp()
+  levelStore[color] = currentTimeStamp();
 
-  dataUpdate[user].level = [levelStore]
+  dataUpdate[user].level = [levelStore];
 
   if (task_existing) {
-    await tracking_createOrupdateDocIfExist("tracking", taskNumber, user, dataUpdate)
+    await tracking_createOrupdateDocIfExist(
+      "tracking",
+      taskNumber,
+      user,
+      dataUpdate
+    );
   } else {
     await tracking_createNewTask("tracking", taskNumber, dataUpdate);
   }
-
 });
 
 /*================================================================= COMMON SHARED FUNCTION USED WITH CLOUDANT  ===================================================================*/
 async function gettingDocsFromDatabase(dbName, docID) {
   const getDocParams = {
     db: dbName,
-    docId: docID
+    docId: docID,
   };
   const documentAboutZebra = await clientcloudant.getDocument(getDocParams);
-  const {
-    result
-  } = documentAboutZebra;
+  const { result } = documentAboutZebra;
   return result;
 }
 
 async function getUserDatabase(userId) {
-  let list = await gettingDocsFromDatabase("users", "vietspeak_user")
-  return list.user[userId]
+  let list = await gettingDocsFromDatabase("users", "vietspeak_user");
+  return list.user[userId];
 }
 
 /*=================================================================VERIFYING USER'S SUBMISION  ===================================================================*/
 
-app.event("message", async ({
-  body,
-  event,
-  context,
-  client,
-  message
-}) => {
-  let {
-    subtype,
-    files,
-    thread_ts
-  } = event;
+app.event("message", async ({ body, event, context, client, message }) => {
+  let { subtype, files, thread_ts } = event;
 
-  let {
-    user,
-    ts,
-    text,
-    channel,
-    channel_type
-  } = message;
+  let { user, ts, text, channel, channel_type } = message;
 
   if (typeof channel_type === "undefined") {
     console.log("không có channel_type");
@@ -4344,18 +3943,16 @@ app.event("message", async ({
 
   return;
 
-
   if (development(user, event)) return;
-  // if(onlyHandleMainThreadEvent(thread_ts) 
+  // if(onlyHandleMainThreadEvent(thread_ts)
   //   || onlyHandlePublicEvent(channel_type)
   //   || onlyHandleIfUploadFile(files)
   //   || onlyHandleIfNotBot(user)
   //   || onlyHandleChannel2(channel)
-  //   || onlyHandleIfNotDeletingEvent(subtype) 
+  //   || onlyHandleIfNotDeletingEvent(subtype)
   //   ){
   //  return;
   // }
-
 
   if (typeof display_as_bot !== "undefined" && display_as_bot) {
     return;
@@ -4365,11 +3962,20 @@ app.event("message", async ({
   if (typeof suptype !== "undefined") {
     if (suptype === "message_deleted" || suptype === "message_changed") return;
   }
-  await gettingDocsFromDatabase("users", "vietspeak_user")
+  await gettingDocsFromDatabase("users", "vietspeak_user");
 });
 
-
 // ==============================DEBUGGING FOR IMPLEMENTING MORE FEATURES FOR REPORT ==============================
+
+async function getEmailFromUser(userID) {
+  const result = await client.users.profile.get({
+    user: userID,
+  });
+  let email = result.profile.email;
+  console.log("emailr: " + email);
+  return email;
+}
+
 app.event("message", async ({ message, event }) => {
   let {
     user,
@@ -4383,89 +3989,88 @@ app.event("message", async ({ message, event }) => {
     parent_user_id,
   } = message;
 
-
   if (onlyHandleFollowingSingleWord(text, ["test", "Test"])) return;
 
-  if (onlyHandleIfIM(channel_type) ||
-    onlyHandleIfNotDeletingEvent(subtype)
-  ) {
+  if (onlyHandleIfIM(channel_type) || onlyHandleIfNotDeletingEvent(subtype)) {
     return;
   }
-  
-  const settings = {
-    url: apiEmailSorted,
-    method: 'GET' // and so on...
-  }
-    
-  const data$ = request(settings)  
-    .pipe(
-      map(data => {
-        return data.response;
-      }),
-      tap(data => {
-        // console.log(data);
-        console.log("Fetching last 100 email registered")
-      }),   
-    )
-      // Converting to promise
-  const outputData = await firstValueFrom(data$)   
-  console.log(outputData)
-    // .subscribe(repo => {
-    //   console.log(repo)
-    //   messageOut = repo
-    // })
 
   try {
-    const result = await client.chat.postMessage({
-      channel: user,
-      text: outputData,
-    });
+    let email = await getEmailFromUser("U03L0SUPVL7");
+    console.log(email);
+
+    let sayReturn = await getUserNotPost();
+    const response = await axios.get(apiEmailSorted);
+    const data = await response.data.records;
+    const data$ = from(data)
+      .pipe(
+        tap((data) => {
+          console.log("Debug");
+          //console.log(data)
+        }),
+        take(4),
+        filter((user) => {
+          return Date.parse(user.createdTime) > 1659346351000;
+        }),
+        map((user) => {
+          return user;
+        }),
+        // scan((acc, current) => acc.concat(current), []), //combine to whole array before emit out https://stackoverflow.com/questions/62438181/how-to-combine-each-inner-observable-rxjs-with-outer-and-emit-one-array
+        // last(),
+        toArray()
+      )
+      .subscribe(async (output) => {
+        console.log(output);
+        const result = await client.chat.postMessage({
+          channel: user,
+          text: sayReturn,
+        });
+      })
+      .unsubscribe();
   } catch (error) {
     console.error(error);
   }
-
 });
 
 /*==============================================================RANK, REPORT AND WARNING ABOUT THE DEADLINE ========================================================*/
+
 async function getUserChannel(channelNumber) {
   const result = await client.conversations.members({
     channel: channelNumber,
-    limit: 1000
+    limit: 1000,
   });
 
   let members = result.members;
   let cursor = result.response_metadata.next_cursor;
-  console.log("cusor: " + cursor)
+  console.log("cusor: " + cursor);
 
   return members;
 }
 
 async function getListPosters(beginning, ending) {
-  let channelId = "C01BY57F29H"
-  let resultList = []
+  let channelId = "C01BY57F29H";
+  let resultList = [];
   let condition = false;
   do {
     if (condition === false) {
       const result = await client.conversations.history({
         oldest: beginning,
         latest: ending,
-        channel: channelId
+        channel: channelId,
       });
       resultList.push(result.messages);
       condition = result.response_metadata.next_cursor ?? false;
-
     } else {
       const result = await client.conversations.history({
         oldest: beginning,
         latest: ending,
         channel: channelId,
-        cursor: condition
+        cursor: condition,
       });
 
       resultList.push(result.messages);
       condition = result.response_metadata.next_cursor ?? false;
     }
-
   } while (condition != false);
   return resultList;
 }
@@ -4475,43 +4080,49 @@ async function getTopFollower() {
   let topFollower = [];
   for (let u in activeUser.user) {
     if (activeUser.user[u].followers.length > 0) {
-      let followerCount = {}
-      followerCount[activeUser.user[u].slackId] = activeUser.user[u].followers.length
-      topFollower.push(followerCount)
+      let followerCount = {};
+      followerCount[activeUser.user[u].slackId] =
+        activeUser.user[u].followers.length;
+      topFollower.push(followerCount);
     }
   }
   topFollower.sort(function (a, b) {
     return Object.values(b) - Object.values(a);
-  })
+  });
   let originaltopFollower = [...topFollower];
-  topFollower = topFollower.slice(0, 10)
+  topFollower = topFollower.slice(0, 10);
 
   originaltopFollower.forEach((e) => {
-    if (Object.values(e) == Object.values(topFollower[topFollower.length - 1])[0]) {
-      topFollower.push(e)
+    if (
+      Object.values(e) == Object.values(topFollower[topFollower.length - 1])[0]
+    ) {
+      topFollower.push(e);
     }
-  })
-  topFollower = [...new Set(topFollower)] //remove duplicate
-  topFollower = topFollower.map((e, index) => `${index + 1}. <@${Object.keys(e)}>: ${Object.values(e)}`)
-  topFollower = `\n\n Top *\`followers\`*: \n\n${topFollower.join("\n")}`
+  });
+  topFollower = [...new Set(topFollower)]; //remove duplicate
+  topFollower = topFollower.map(
+    (e, index) => `${index + 1}. <@${Object.keys(e)}>: ${Object.values(e)}`
+  );
+  topFollower = `\n\n Top *\`followers\`*: \n\n${topFollower.join("\n")}`;
   return topFollower;
 }
 
 async function getListofVolunteer() {
   let activeUser = await gettingDocsFromDatabase("users", "vietspeak_user");
-  
+
   let topVolunteer = [];
-  
+
   for (let u in activeUser.user) {
     if (activeUser.user[u].volunteer === true) {
-      topVolunteer.push(activeUser.user[u].slackId)
+      topVolunteer.push(activeUser.user[u].slackId);
     }
   }
-  
-  topVolunteer = topVolunteer.map((e, index) => `${index + 1}. <@${e}>`)
-  topVolunteer = `\n\n Danh sách *\`volunteer\`*: \n\n${topVolunteer.join("\n")}`
-  return topVolunteer + "\n\n";
 
+  topVolunteer = topVolunteer.map((e, index) => `${index + 1}. <@${e}>`);
+  topVolunteer = `\n\n Danh sách *\`volunteer\`*: \n\n${topVolunteer.join(
+    "\n"
+  )}`;
+  return topVolunteer + "\n\n";
 }
 
 function findDuplicatedandCount(array = []) {
@@ -4520,7 +4131,7 @@ function findDuplicatedandCount(array = []) {
   let listLength = array.length;
   for (let i = 0; i < listLength; i++) {
     for (let j = 0; j < listLength; j++) {
-      //data mixed of string and number, so using == 
+      //data mixed of string and number, so using ==
       if (array[i] == array[j] && i !== j) {
         result[array[i]] = result[array[i]] ? result[array[i]] + 1 : 1;
         break;
@@ -4533,31 +4144,33 @@ function findDuplicatedandCount(array = []) {
 
 async function postReportTaskList(destination, taskNumber) {
   try {
-
     let topFollowerDisplay = await getTopFollower();
-    let volunteerList = await getListofVolunteer()
-    
+    let volunteerList = await getListofVolunteer();
+
     let channel00_Announcement = `C01BY4ZQ7TM`;
     let currentTaskNow = getCurrentTask(currentTimeStamp());
     let beginning, ending;
     let listMising = true;
 
-    if (typeof taskNumber === "undefined" || taskNumber > currentTaskNow || taskNumber < 68) {
-      taskNumber = currentTaskNow
+    if (
+      typeof taskNumber === "undefined" ||
+      taskNumber > currentTaskNow ||
+      taskNumber < 68
+    ) {
+      taskNumber = currentTaskNow;
     }
 
     if (Number(currentTaskNow) !== Number(taskNumber)) {
-      beginning = getTimeStampFromTaskNumber(taskNumber).beginning
-      ending = getTimeStampFromTaskNumber(taskNumber).ending
-      currentTaskNow = taskNumber
-
+      beginning = getTimeStampFromTaskNumber(taskNumber).beginning;
+      ending = getTimeStampFromTaskNumber(taskNumber).ending;
+      currentTaskNow = taskNumber;
     } else {
       beginning = getBeginningAndEndingTask(currentTimeStamp()).beginning;
       ending = getBeginningAndEndingTask(currentTimeStamp()).ending;
     }
 
     let list = await getListPosters(beginning, ending);
-    list = list.flat()
+    list = list.flat();
     let postByUsers = list.filter((e) => typeof e.files !== "undefined");
     /* User*/
     let usersList = postByUsers.map((e) => e.user);
@@ -4565,45 +4178,70 @@ async function postReportTaskList(destination, taskNumber) {
     /* ===============Not submitted ===============*/
     let memberInChannel = await getUserChannel("C01BY57F29H");
     memberInChannel = memberInChannel.filter((e) => {
-
-    // also not check @trunghieu, @hieunguyen: "U01BXJNDETU", "U01CA8D5D3K",
-    let notcheck = ["U01BXJNDETU", "U01CA8D5D3K", "U03SSC0NQPP","U01EVJFP0U8", "U01HEMMPVK2", "U02K40CRMFB", "U02N7T5PRRS", "U01DS209G1Y", "U01CYMZM3FV", "U02N47DMKRR", "U02PQ7A3YB0", "U01D4RB4EHM"]
+      // also not check @trunghieu, @hieunguyen: "U01BXJNDETU", "U01CA8D5D3K",
+      let notcheck = [
+        "U01BXJNDETU",
+        "U01CA8D5D3K",
+        "U03SSC0NQPP",
+        "U01EVJFP0U8",
+        "U01HEMMPVK2",
+        "U02K40CRMFB",
+        "U02N7T5PRRS",
+        "U01DS209G1Y",
+        "U01CYMZM3FV",
+        "U02N47DMKRR",
+        "U02PQ7A3YB0",
+        "U01D4RB4EHM",
+      ];
       for (b of notcheck) {
         if (b === e) return false;
       }
       return true;
-    })
+    });
 
     let uniqueUsers = [...new Set(usersList)];
-    let notsubmitted = memberInChannel.filter(x => !uniqueUsers.includes(x));
+    let notsubmitted = memberInChannel.filter((x) => !uniqueUsers.includes(x));
     let totalnotsubmitted = notsubmitted.length;
     notsubmitted = notsubmitted.map((e) => `<@${e}>`);
-    notsubmitted = listMising ? `Danh sách ${totalnotsubmitted} quý khách *\`lỡ xe\`*:  ${notsubmitted.join(", ")}` : ''
+    notsubmitted = listMising
+      ? `Danh sách ${totalnotsubmitted} quý khách *\`lỡ xe\`*:  ${notsubmitted.join(
+          ", "
+        )}`
+      : "";
 
     /*===============cô tấm===============*/
-    let rsorted = findDuplicatedandCount(usersList)
+    let rsorted = findDuplicatedandCount(usersList);
     let top4 = [];
     let top3 = [];
     let top2 = [];
     for (let item in rsorted) {
       if (rsorted[item] >= 4) {
-        top4.push(item)
+        top4.push(item);
       }
       if (rsorted[item] === 3) {
-        top3.push(item)
+        top3.push(item);
       }
       if (rsorted[item] === 2) {
-        top2.push(item)
+        top2.push(item);
       }
     }
 
-    top4 = top4.map(e => `<@${e}>`)
-    top3 = top3.map(e => `<@${e}>`)
-    top2 = top2.map(e => `<@${e}>`)
+    top4 = top4.map((e) => `<@${e}>`);
+    top3 = top3.map((e) => `<@${e}>`);
+    top2 = top2.map((e) => `<@${e}>`);
 
-    top4 = top4.length > 0 ? `\n\nTop *\`cô Tấm\`* chăm chỉ 4 màu: ${top4.join(", ")}` : ""
-    top3 = top3.length > 0 ? `\n\nTop *\`ong đất\`* tảo tần 3 màu: ${top3.join(", ")}` : ""
-    top2 = top2.length > 0 ? `\n\nTop *\`kiến càng\`* chịu khó 2 màu: ${top2.join(", ")}` : ""
+    top4 =
+      top4.length > 0
+        ? `\n\nTop *\`cô Tấm\`* chăm chỉ 4 màu: ${top4.join(", ")}`
+        : "";
+    top3 =
+      top3.length > 0
+        ? `\n\nTop *\`ong đất\`* tảo tần 3 màu: ${top3.join(", ")}`
+        : "";
+    top2 =
+      top2.length > 0
+        ? `\n\nTop *\`kiến càng\`* chịu khó 2 màu: ${top2.join(", ")}`
+        : "";
 
     /* =======================================================*/
     // sorting array and keep the original index https://stackoverflow.com/questions/44613846/how-to-keep-array-indexvalue-after-sorting
@@ -4611,9 +4249,9 @@ async function postReportTaskList(destination, taskNumber) {
       let mapped = numArray.map(function (el, i) {
         return {
           index: i,
-          value: el
+          value: el,
         };
-      })
+      });
       // sorting the mapped array containing the reduced values
       mapped.sort(function (a, b) {
         return a.value - b.value;
@@ -4625,10 +4263,10 @@ async function postReportTaskList(destination, taskNumber) {
 
       let start = mapped.length - 10;
       if (start < 0) {
-        start = 0
+        start = 0;
       }
 
-      mapped = mapped.slice(start, mapped.length)
+      mapped = mapped.slice(start, mapped.length);
       mapped.reverse();
       return mapped;
     }
@@ -4645,14 +4283,22 @@ async function postReportTaskList(destination, taskNumber) {
     let reactionList = postByUsers.map((e) => e.reactions);
     let reactionCounting = reactionList.map((e) => counting(e));
     let topReactionIndex = sortAndKeepIndex(reactionCounting);
-    topReactionIndex = topReactionIndex.map((e, i) => `${i + 1}. <@${usersList[e.index]}> : ${e.value} reactions`);
-    topReactionIndex = `Top 10 bài được *\`quan tâm\`* nhất: \n\n ${topReactionIndex.join("\n")}`
+    topReactionIndex = topReactionIndex.map(
+      (e, i) => `${i + 1}. <@${usersList[e.index]}> : ${e.value} reactions`
+    );
+    topReactionIndex = `Top 10 bài được *\`quan tâm\`* nhất: \n\n ${topReactionIndex.join(
+      "\n"
+    )}`;
 
     /*===============Reply counting===============*/
     let reply_count = postByUsers.map((e) => e.reply_count);
     let reply_countIndex = sortAndKeepIndex(reply_count);
-    reply_countIndex = reply_countIndex.map((e, i) => `${i + 1}. <@${usersList[e.index]}> : ${e.value} comments`);
-    reply_countIndex = `Top 10 bài được *\`bà tám\`* nhất: \n\n ${reply_countIndex.join("\n")}`
+    reply_countIndex = reply_countIndex.map(
+      (e, i) => `${i + 1}. <@${usersList[e.index]}> : ${e.value} comments`
+    );
+    reply_countIndex = `Top 10 bài được *\`bà tám\`* nhất: \n\n ${reply_countIndex.join(
+      "\n"
+    )}`;
 
     /*===============Reply reply_users===============*/
     let reply_users = postByUsers.map((e) => e.reply_users);
@@ -4662,43 +4308,64 @@ async function postReportTaskList(destination, taskNumber) {
     reply_users.forEach(function (x) {
       counts[x] = (counts[x] || 0) + 1;
     });
-    const arrayList = Object.entries(counts)
+    const arrayList = Object.entries(counts);
     arrayList.sort(function (a, b) {
       return b[1] - a[1];
     });
 
     // filter bots
     let arrayListFilter = arrayList.filter((e) => {
-      let bot = ["U01EVJFP0U8", "U01HEMMPVK2", "U02K40CRMFB", "U02N7T5PRRS", "U01CYMZM3FV", "U01DS209G1Y", "U01D4RB4EHM"]
+      let bot = [
+        "U01EVJFP0U8",
+        "U01HEMMPVK2",
+        "U02K40CRMFB",
+        "U02N7T5PRRS",
+        "U01CYMZM3FV",
+        "U01DS209G1Y",
+        "U01D4RB4EHM",
+      ];
       for (b of bot) {
         if (b == e[0]) return false;
       }
       return true;
-    })
+    });
 
     let chimse = arrayListFilter.slice(0, 10);
-    let niceComments = chimse.map((e, i) => `${i + 1}. <@${e[0]}> : comment giúp ${e[1]} bạn`);
-    niceComments = `Top 10 *\`chim sẻ\`* đi nắng: \n\n ${niceComments.join("\n")}`
+    let niceComments = chimse.map(
+      (e, i) => `${i + 1}. <@${e[0]}> : comment giúp ${e[1]} bạn`
+    );
+    niceComments = `Top 10 *\`chim sẻ\`* đi nắng: \n\n ${niceComments.join(
+      "\n"
+    )}`;
 
     /*===============mèo lười===============*/
     let lazyCat = arrayListFilter.filter((e) => e[1] < 2);
     lazyCat = lazyCat.map((e, i) => `<@${e[0]}>`);
-    lazyCat = `Top *\`mèo lười\`* phơi nắng dưới 2 comment: ${lazyCat.join(", ")}`
+    lazyCat = `Top *\`mèo lười\`* phơi nắng dưới 2 comment: ${lazyCat.join(
+      ", "
+    )}`;
 
     /*===============quái xế===============*/
-    let earlyBirdUser = postByUsers.filter((e) => e.ts <= Number(beginning) + 86400);
+    let earlyBirdUser = postByUsers.filter(
+      (e) => e.ts <= Number(beginning) + 86400
+    );
     earlyBirdUser.reverse();
-    earlyBirdUser = earlyBirdUser.map((e) => `<@${e.user}>`)
-    earlyBirdUser = `Top *\`quái xế \`* tốc độ: ${earlyBirdUser.join(", ")}`
+    earlyBirdUser = earlyBirdUser.map((e) => `<@${e.user}>`);
+    earlyBirdUser = `Top *\`quái xế \`* tốc độ: ${earlyBirdUser.join(", ")}`;
 
     /*===============ốc sên===============*/
-    let lateBirdUser = postByUsers.filter((e) => e.ts >= Number(ending) - 10800);
+    let lateBirdUser = postByUsers.filter(
+      (e) => e.ts >= Number(ending) - 10800
+    );
     lateBirdUser.reverse();
-    lateBirdUser = lateBirdUser.map((e) => `<@${e.user}>`)
-    lateBirdUser = lateBirdUser.length > 0 ? `\n\nTop *\`ốc sên\`* kẹt xe: ${lateBirdUser.join(", ")}` : "";
+    lateBirdUser = lateBirdUser.map((e) => `<@${e.user}>`);
+    lateBirdUser =
+      lateBirdUser.length > 0
+        ? `\n\nTop *\`ốc sên\`* kẹt xe: ${lateBirdUser.join(", ")}`
+        : "";
     let decorationText = `*✧･ﾟ: *✧･ﾟ🅡🅔🅟🅞🅡🅣* *:･ﾟ✧*:･ﾟ✧*`;
 
-    let sayReturn = `${decorationText} ${topFollowerDisplay}\n\n ${volunteerList} ${postByUsers.length} là số *\`bài đăng\`* của ${uniqueUsers.length}/${memberInChannel.length} tổng số thành viên trong task ${currentTaskNow}. ${top4}${top3}${top2}\n\n ${topReactionIndex}\n\n ${reply_countIndex}\n\n ${niceComments}\n\n ${lazyCat}\n\n ${earlyBirdUser}  ${lateBirdUser}\n\n${notsubmitted}`
+    let sayReturn = `${decorationText} ${topFollowerDisplay}\n\n ${volunteerList} ${postByUsers.length} là số *\`bài đăng\`* của ${uniqueUsers.length}/${memberInChannel.length} tổng số thành viên trong task ${currentTaskNow}. ${top4}${top3}${top2}\n\n ${topReactionIndex}\n\n ${reply_countIndex}\n\n ${niceComments}\n\n ${lazyCat}\n\n ${earlyBirdUser}  ${lateBirdUser}\n\n${notsubmitted}`;
 
     try {
       const result = await client.chat.postMessage({
@@ -4706,50 +4373,37 @@ async function postReportTaskList(destination, taskNumber) {
         text: sayReturn,
       });
       console.log(result.ok);
-
     } catch (error) {
       console.error(error);
     }
-
   } catch (error) {
     console.error(error);
   }
 }
 
-app.event("message", async ({
-  body,
-  event,
-  context,
-  client,
-  message
-}) => {
-  let {
-    subtype,
-    files,
-    thread_ts
-  } = event;
+app.event("message", async ({ body, event, context, client, message }) => {
+  let { subtype, files, thread_ts } = event;
 
-  let {
-    user,
-    ts,
-    text,
-    channel,
-    channel_type
-  } = message;
+  let { user, ts, text, channel, channel_type } = message;
 
   if (typeof channel_type === "undefined") {
     return;
   }
 
   if (typeof text === "undefined") return;
-  text = text.trim().toLowerCase().split(" ").filter((e) => e.length > 0)
+  text = text
+    .trim()
+    .toLowerCase()
+    .split(" ")
+    .filter((e) => e.length > 0);
   if (text.length >= 3) return;
   if (text[0] !== "rank") return;
-  
-//   if (development(user, event)) return;
-    console.log(user + " is checking rank");
 
-  if (onlyHandleIfIM(channel_type) ||
+  //   if (development(user, event)) return;
+  console.log(user + " is checking rank");
+
+  if (
+    onlyHandleIfIM(channel_type) ||
     onlyHandleIfNotBot(user) ||
     onlyHandleIfNotDeletingEvent(subtype)
   ) {
@@ -4757,7 +4411,6 @@ app.event("message", async ({
   }
 
   await postReportTaskList(user, text[1]);
-
 });
 
 /*======================================================== ENDING TASK REPORT ========================================================*/
@@ -4771,18 +4424,18 @@ ruleReport.tz = "Asia/Ho_Chi_Minh";
 const jobruleReport = schedule.scheduleJob(ruleReport, function () {
   let previousTask = getCurrentTask(currentTimeStamp()) - 1;
   let channel00_Announcement = `C01BY4ZQ7TM`;
-  postReportTaskList(channel00_Announcement, previousTask)
+  postReportTaskList(channel00_Announcement, previousTask);
 });
 
 /*======================================================== WARNING ABOUT THE DEADLINE ==================================================*/
-async function postWarningList() {
+async function getUserNotPost() {
   let currentTask = getCurrentTask(currentTimeStamp());
   let timetable = getTimeStampFromTaskNumber(currentTask);
   let beginning = timetable.beginning;
   let ending = timetable.ending;
 
   let list = await getListPosters(beginning, ending);
-  list = list.flat()
+  list = list.flat();
   let postByUsers = list.filter((e) => typeof e.files !== "undefined");
   let usersList = postByUsers.map((e) => e.user);
 
@@ -4790,19 +4443,40 @@ async function postWarningList() {
   let memberInChannel = await getUserChannel("C01BY57F29H");
   memberInChannel = memberInChannel.filter((e) => {
     // also not check @trunghieu, @hieunguyen: "U01BXJNDETU", "U01CA8D5D3K",
-    let notcheck = ["U01BXJNDETU", "U01CA8D5D3K", "U03SSC0NQPP","U01EVJFP0U8", "U01HEMMPVK2", "U02K40CRMFB", "U02N7T5PRRS", "U01DS209G1Y", "U01CYMZM3FV", "U02N47DMKRR", "U02PQ7A3YB0", "U01D4RB4EHM"]
+    let notcheck = [
+      "U01BXJNDETU",
+      "U01CA8D5D3K",
+      "U03SSC0NQPP",
+      "U01EVJFP0U8",
+      "U01HEMMPVK2",
+      "U02K40CRMFB",
+      "U02N7T5PRRS",
+      "U01DS209G1Y",
+      "U01CYMZM3FV",
+      "U02N47DMKRR",
+      "U02PQ7A3YB0",
+      "U01D4RB4EHM",
+    ];
     for (b of notcheck) {
       if (b === e) return false;
     }
     return true;
-  })
+  });
 
   let uniqueUsers = [...new Set(usersList)];
-  let notsubmitted = memberInChannel.filter(x => !uniqueUsers.includes(x));
+  let notsubmitted = memberInChannel.filter((x) => !uniqueUsers.includes(x));
+
+  return notsubmitted;
+}
+
+async function postWarningList() {
+  let currentTask = getCurrentTask(currentTimeStamp());
+  let notsubmitted = await getUserNotPost();
   let totalnotsubmitted = notsubmitted.length;
   notsubmitted = notsubmitted.map((e) => `<@${e}>`);
-
-  notsubmitted = `*\`*===**-^^WARNING^^-**===*\`*\n\n Danh sách ${totalnotsubmitted} quý khách *\`kẹt xe\`* chưa nộp bài task ${currentTask}: \n\n ${notsubmitted.join(", ")} \n\n Các bạn còn 6 giờ đồng hồ để thu và nộp bài hoàn thành task ${currentTask}. \n\n Chúc các bạn sớm về đích dù trời nắng hay mưa, chắc là Internet vẫn chạy`;
+  notsubmitted = `*\`*===**-^^WARNING^^-**===*\`*\n\n Danh sách ${totalnotsubmitted} quý khách *\`kẹt xe\`* chưa nộp bài task ${currentTask}: \n\n ${notsubmitted.join(
+    ", "
+  )} \n\n Các bạn còn 6 giờ đồng hồ để thu và nộp bài hoàn thành task ${currentTask}. \n\n Chúc các bạn sớm về đích dù trời nắng hay mưa, chắc là Internet vẫn chạy`;
   return notsubmitted;
 }
 
@@ -4813,46 +4487,33 @@ ruleReportWarning.hour = [18];
 ruleReportWarning.date = [10, 20, getTheLastDayOfTheMonth()];
 ruleReportWarning.tz = "Asia/Ho_Chi_Minh";
 
-const jobruleReportWarning = schedule.scheduleJob(ruleReportWarning, async function () {
-  //channel1:  G01BPHWQ023 //will U01C3SA99FW 
-  let channel00_Announcement = `C01BY4ZQ7TM`;
-  try {
-    let sayReturn = await postWarningList()
+const jobruleReportWarning = schedule.scheduleJob(
+  ruleReportWarning,
+  async function () {
+    //channel1:  G01BPHWQ023 //will U01C3SA99FW
+    let channel00_Announcement = `C01BY4ZQ7TM`;
+    try {
+      let sayReturn = await postWarningList();
 
-    const result = await app.client.chat.postMessage({
-      channel: channel00_Announcement,
-      text: sayReturn,
-    });
-    console.log("warning: " + result.ok);
-
-  } catch (error) {
-    console.error(error);
+      const result = await app.client.chat.postMessage({
+        channel: channel00_Announcement,
+        text: sayReturn,
+      });
+      console.log("warning: " + result.ok);
+    } catch (error) {
+      console.error(error);
+    }
   }
-});
+);
 
 /*=================================================================NOTIFY FOLLOWER =============================================================*/
-app.event("message", async ({
-  body,
-  event,
-  context,
-  client,
-  message
-}) => {
-  let {
-    subtype,
-    files,
-    thread_ts
-  } = event;
+app.event("message", async ({ body, event, context, client, message }) => {
+  let { subtype, files, thread_ts } = event;
   //console.log(event);
-  let {
-    user,
-    ts,
-    text,
-    channel,
-    channel_type
-  } = message;
+  let { user, ts, text, channel, channel_type } = message;
 
-  if (onlyHandleMainThreadEvent(thread_ts) ||
+  if (
+    onlyHandleMainThreadEvent(thread_ts) ||
     onlyHandlePublicEvent(channel_type) ||
     onlyHandleIfUploadFile(files) ||
     onlyHandleIfNotBot(user) ||
@@ -4862,27 +4523,23 @@ app.event("message", async ({
     return;
   }
 
-  let {
-    name,
-    title,
-  } = files[0];
+  let { name, title } = files[0];
 
   let color = getLevel(title, text);
   if (color === "unknown") {
-    color = ""
+    color = "";
   }
 
   async function getMessageLink() {
     try {
       const resultLink = await client.chat.getPermalink({
         channel: channel,
-        message_ts: ts
+        message_ts: ts,
       });
       return resultLink;
     } catch (error) {
       console.error(error);
     }
-
   }
 
   let { permalink } = await getMessageLink();
@@ -4901,36 +4558,20 @@ app.event("message", async ({
       } catch (error) {
         console.error(error);
       }
-
-    })
+    });
   }
 });
 
-
 /*======================================= VOLUNTEER =====================================================*/
-app.event("message", async ({
-  body,
-  event,
-  context,
-  client,
-  message,
-  say
-}) => {
-
-  let {
-    text,
-    user,
-    channel_type
-  } = message;
+app.event("message", async ({ body, event, context, client, message, say }) => {
+  let { text, user, channel_type } = message;
 
   if (onlyHandleIfIM(channel_type)) return;
-  
+
   if (onlyHandleFollowingSingleWord(text, ["volunteer"])) return;
 
   const updatingPrivateID = async (dbName, docID, userID) => {
-
     try {
-
       const document = (
         await clientcloudant.getDocument({
           docId: docID,
@@ -4938,20 +4579,16 @@ app.event("message", async ({
         })
       ).result;
 
-      let {
-        user
-      } = document;
+      let { user } = document;
 
       let listofID = [];
 
       for (let u in user) {
-        listofID.push(user[u].anonymous)
+        listofID.push(user[u].anonymous);
       }
 
       if (user.hasOwnProperty(userID)) {
-
         if (user[userID].volunteer == true) {
-
           document.user[userID].volunteer = false;
           document._rev = (
             await clientcloudant.postDocument({
@@ -4959,11 +4596,9 @@ app.event("message", async ({
               document, // _id and _rev MUST be inside the document object
             })
           ).result.rev;
-          
-          return false;
 
+          return false;
         } else {
-            
           document.user[userID].volunteer = true;
           document._rev = (
             await clientcloudant.postDocument({
@@ -4973,32 +4608,39 @@ app.event("message", async ({
           ).result.rev;
           return true;
         }
-        
-        console.log("=========== UPDATING annonymous ID IN THE DATABASE: ===========: " + userID + " - ");
-      }
 
+        console.log(
+          "=========== UPDATING annonymous ID IN THE DATABASE: ===========: " +
+            userID +
+            " - "
+        );
+      }
     } catch (err) {
       if (err.code === 404) {
         console.log(
-          `Cannot update document because either "${dbName}" database or the "document" ` + `document was not found.`
+          `Cannot update document because either "${dbName}" database or the "document" ` +
+            `document was not found.`
         );
       }
     }
-  }
+  };
 
   try {
-    
-    let status_volunteer = await updatingPrivateID("users", "vietspeak_user", user);
+    let status_volunteer = await updatingPrivateID(
+      "users",
+      "vietspeak_user",
+      user
+    );
     const result = await client.chat.postMessage({
       channel: user,
-      text: status_volunteer ? `Bạn vừa tham gia nhóm volunteer comment hỗ trợ các bạn trên VietSpeak. Soạn "volunteer" để rời nhóm!. Soạn "me" gửi KIWI để xem profile của bạn.` : `Bạn vừa rời nhóm volunteer comment hỗ trợ các bạn trên VietSpeak. Soạn "volunteer" để tham gia lại! Soạn "me" gửi KIWI để xem profile của bạn.`
+      text: status_volunteer
+        ? `Bạn vừa tham gia nhóm volunteer comment hỗ trợ các bạn trên VietSpeak. Soạn "volunteer" để rời nhóm!. Soạn "me" gửi KIWI để xem profile của bạn.`
+        : `Bạn vừa rời nhóm volunteer comment hỗ trợ các bạn trên VietSpeak. Soạn "volunteer" để tham gia lại! Soạn "me" gửi KIWI để xem profile của bạn.`,
     });
     console.log(result.ok);
-
   } catch (error) {
     console.error(error);
   }
-
 });
 
 /*======================================================== DISPATCHING VOLUNTEER ==================================================*/
@@ -5009,56 +4651,72 @@ async function postDispathchingVolunteerComment() {
   let ending = timetable.ending;
 
   let list = await getListPosters(beginning, ending);
-  list = list.flat()
-  
-  let postNeedComments = list.filter(e => {
-     let listReplyUser = e.reply_users;
-     
-     let botslist = ["U01EVJFP0U8", "U01HEMMPVK2", "U02K40CRMFB", "U02N7T5PRRS", "U01DS209G1Y", "U01CYMZM3FV", "U02N47DMKRR", "U01D4RB4EHM"]
-     
-     listReplyUser = listReplyUser.filter((eachreplyUser) => {
-         if(botslist.includes(eachreplyUser)) return false;
-         
-         return true;
-     })
-    
-    if(typeof e.files !== "undefined" && listReplyUser.length < 2){
-        return true;
-          
-      }else{
-          return false;
-    }
-      
-  });
-      
-  console.log(postNeedComments)
+  list = list.flat();
 
+  let postNeedComments = list.filter((e) => {
+    let listReplyUser = e.reply_users;
+
+    let botslist = [
+      "U01EVJFP0U8",
+      "U01HEMMPVK2",
+      "U02K40CRMFB",
+      "U02N7T5PRRS",
+      "U01DS209G1Y",
+      "U01CYMZM3FV",
+      "U02N47DMKRR",
+      "U01D4RB4EHM",
+    ];
+
+    listReplyUser = listReplyUser.filter((eachreplyUser) => {
+      if (botslist.includes(eachreplyUser)) return false;
+
+      return true;
+    });
+
+    if (typeof e.files !== "undefined" && listReplyUser.length < 2) {
+      return true;
+    } else {
+      return false;
+    }
+  });
+
+  console.log(postNeedComments);
 }
 
 const rulepostDispathchingVolunteerComment = new schedule.RecurrenceRule();
-    rulepostDispathchingVolunteerComment.second = 0;
-    rulepostDispathchingVolunteerComment.minute = [6, 8, 44, 45, 48, 50, 52, 53, 54, 58, 59];
-    rulepostDispathchingVolunteerComment.hour = [13];
-    rulepostDispathchingVolunteerComment.date = [4, 8, 14, 18, 24, getTheLastDayOfTheMonth()- 2];
-    rulepostDispathchingVolunteerComment.tz = "Asia/Ho_Chi_Minh";
+rulepostDispathchingVolunteerComment.second = 0;
+rulepostDispathchingVolunteerComment.minute = [
+  6, 8, 44, 45, 48, 50, 52, 53, 54, 58, 59,
+];
+rulepostDispathchingVolunteerComment.hour = [13];
+rulepostDispathchingVolunteerComment.date = [
+  4,
+  8,
+  14,
+  18,
+  24,
+  getTheLastDayOfTheMonth() - 2,
+];
+rulepostDispathchingVolunteerComment.tz = "Asia/Ho_Chi_Minh";
 
-const scheduleDispathchingVolunteerComment = schedule.scheduleJob(rulepostDispathchingVolunteerComment, async function () {
-  //channel1:  G01BPHWQ023 //will U01C3SA99FW 
-  let channel00_Announcement = `C01BY4ZQ7TM`;
-  try {
-    let sayReturn = await postDispathchingVolunteerComment()
-    
-    const result = await app.client.chat.postMessage({
-      channel: 'U01C3SA99FW', //testing
-      text: "sayReturn",
-    });
-    console.log("Dispatching: " + result.ok);
+const scheduleDispathchingVolunteerComment = schedule.scheduleJob(
+  rulepostDispathchingVolunteerComment,
+  async function () {
+    //channel1:  G01BPHWQ023 //will U01C3SA99FW
+    let channel00_Announcement = `C01BY4ZQ7TM`;
+    try {
+      let sayReturn = await postDispathchingVolunteerComment();
 
-  } catch (error) {
-    console.error(error);
+      const result = await app.client.chat.postMessage({
+        channel: "U01C3SA99FW", //testing
+        text: "sayReturn",
+      });
+      console.log("Dispatching: " + result.ok);
+    } catch (error) {
+      console.error(error);
+    }
   }
-});
-
+);
 
 /*==============================================================================================================================*/
 (async () => {
@@ -5066,7 +4724,6 @@ const scheduleDispathchingVolunteerComment = schedule.scheduleJob(rulepostDispat
     await app.start();
     console.log("⚡️ KIWI app started");
     console.log(getCurrentTask(currentTimeStamp()));
-
   } catch (err) {
     console.log("ERROR OCCURRING ====>", err);
   }
