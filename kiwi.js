@@ -19,8 +19,8 @@ let WEATHER_API = process.env.WEATHER_API;
 let apiEmailSorted = `https://api.airtable.com/v0/appDhJQmOmVO1x4DM/register_form_vietspeak?fields%5B%5D=Formdate&fields%5B%5D=email__address&sort%5B0%5D%5Bdirection%5D=desc&sort%5B0%5D%5Bfield%5D=Formdate&api_key=${AirTable_Api_key}`;
 
 // ====================================================================
-const { App } = require("@slack/bolt");
-const { WebClient, LogLevel } = require("@slack/web-api");
+const {App} = require("@slack/bolt");
+const {WebClient, LogLevel} = require("@slack/web-api");
 
 const NodeCache = require("node-cache");
 
@@ -29,13 +29,13 @@ const myCache = new NodeCache();
 const flatCache = require("flat-cache");
 const cache = flatCache.load("vietspeak");
 
-const { customAlphabet } = require("nanoid");
+const {customAlphabet} = require("nanoid");
 const alphabet = "abcdefghijklmnopqrstuvwxyz123456789";
 const nanoid = customAlphabet(alphabet, 11);
 
 // ===========================clientcloudant=================================
-const { CloudantV1 } = require("@ibm-cloud/cloudant");
-const { IamAuthenticator } = require("ibm-cloud-sdk-core");
+const {CloudantV1} = require("@ibm-cloud/cloudant");
+const {IamAuthenticator} = require("ibm-cloud-sdk-core");
 
 //https://cloud.ibm.com/apidocs/cloudant?code=node#authentication
 const authenticator = new IamAuthenticator({
@@ -76,7 +76,7 @@ const {
   onlyHandleFollowingSingleWord,
 } = require("./utilities");
 
-const { Observable, from, of, timer, range, firstValueFrom } = require("rxjs");
+const {Observable, from, of, timer, range, firstValueFrom} = require("rxjs");
 const {
   map,
   first,
@@ -88,8 +88,8 @@ const {
   filter,
   catchError,
 } = require("rxjs/operators");
-const { ajax } = require("rxjs/ajax");
-const { request } = require("universal-rxjs-ajax"); //use this for nodejs environment
+const {ajax} = require("rxjs/ajax");
+const {request} = require("universal-rxjs-ajax"); //use this for nodejs environment
 
 // ============================================================
 
@@ -108,7 +108,7 @@ const VietSpeakBankUser = new WebClient(Slack_User_VietSpeakBank_token, {
 });
 
 const stringSimilarity = require("string-similarity");
-const { v4: uuidv4 } = require("uuid");
+const {v4: uuidv4} = require("uuid");
 const schedule = require("node-schedule");
 
 const fs = require("fs");
@@ -152,7 +152,7 @@ const app = new App({
   appToken: Slack_KIWI_App_token,
 });
 
-app.event("message", async ({ body, event, context, client, message }) => {
+app.event("message", async ({body, event, context, client, message}) => {
   let {
     user,
     ts,
@@ -196,7 +196,7 @@ app.event("message", async ({ body, event, context, client, message }) => {
   }
 });
 
-app.event("message", async ({ body, event, context, client, message }) => {
+app.event("message", async ({body, event, context, client, message}) => {
   let {
     user,
     ts,
@@ -238,7 +238,7 @@ app.event("message", async ({ body, event, context, client, message }) => {
 
 //=========================================GRE================================================================
 
-app.event("message", async ({ message, say }) => {
+app.event("message", async ({message, say}) => {
   let {
     user,
     ts,
@@ -278,7 +278,7 @@ app.event("message", async ({ message, say }) => {
 });
 
 // ==============================weather ==============================
-app.message(/(w|W)\s[a-zA-Z]+/, async ({ context, body, message, say }) => {
+app.message(/(w|W)\s[a-zA-Z]+/, async ({context, body, message, say}) => {
   let {
     user,
     ts,
@@ -365,7 +365,7 @@ app.message(/(w|W)\s[a-zA-Z]+/, async ({ context, body, message, say }) => {
 });
 
 // ==============================fact===============================
-app.event("message", async ({ message, say }) => {
+app.event("message", async ({message, say}) => {
   let {
     user,
     ts,
@@ -397,7 +397,7 @@ app.event("message", async ({ message, say }) => {
 });
 
 // ==============================quote===============================
-app.event("message", async ({ message, say }) => {
+app.event("message", async ({message, say}) => {
   let {
     user,
     ts,
@@ -429,7 +429,7 @@ app.event("message", async ({ message, say }) => {
 });
 
 // ==============================story===============================
-app.event("message", async ({ message, say }) => {
+app.event("message", async ({message, say}) => {
   let {
     user,
     ts,
@@ -461,7 +461,7 @@ app.event("message", async ({ message, say }) => {
 });
 
 // ==============================joke===============================
-app.event("message", async ({ message, event }) => {
+app.event("message", async ({message, event}) => {
   let {
     user,
     ts,
@@ -496,7 +496,7 @@ app.event("message", async ({ message, event }) => {
 });
 
 // HELP-------------------
-app.event("message", async ({ message, say }) => {
+app.event("message", async ({message, say}) => {
   let {
     user,
     ts,
@@ -552,12 +552,12 @@ async function getDictionary(wordCheck) {
       meaningNumber++;
       finalmeaningReturn.push(
         meaningNumber +
-          ") " +
-          "*Definition*: " +
-          "*`" +
-          dinhnghia.definition +
-          "`*" +
-          "\n"
+        ") " +
+        "*Definition*: " +
+        "*`" +
+        dinhnghia.definition +
+        "`*" +
+        "\n"
       );
       if (dinhnghia.example !== undefined) {
         finalmeaningReturn.push(`*Example*: ${dinhnghia.example}\n`);
@@ -581,7 +581,7 @@ async function getDictionary(wordCheck) {
   return finalmeaningReturn;
 }
 
-app.message(/^(d|D)\s[a-zA-Z]+/, async ({ body, message, say }) => {
+app.message(/^(d|D)\s[a-zA-Z]+/, async ({body, message, say}) => {
   let {
     user,
     ts,
@@ -636,7 +636,7 @@ async function getItem(index) {
 }
 
 //=========================nytimes========================================================
-app.event("message", async ({ message, say }) => {
+app.event("message", async ({message, say}) => {
   let {
     user,
     ts,
@@ -711,8 +711,8 @@ async function getItemEconomist(randomIndex) {
   return resultObject;
 }
 
-app.event("message", async ({ event, message, body, say }) => {
-  let { text, channel_type, user } = event;
+app.event("message", async ({event, message, body, say}) => {
+  let {text, channel_type, user} = event;
 
   if (onlyHandleFollowingSingleWord(text, ["e"])) return;
 
@@ -835,7 +835,7 @@ async function getIPA(wordInput) {
 
 app.event(
   "app_mention",
-  async ({ body, event, context, client, message, say }) => {
+  async ({body, event, context, client, message, say}) => {
     let {
       client_msg_id,
       text,
@@ -879,7 +879,7 @@ app.event(
 
 app.event(
   "app_mention",
-  async ({ body, event, context, client, message, say }) => {
+  async ({body, event, context, client, message, say}) => {
     let {
       client_msg_id,
       text,
@@ -1009,7 +1009,7 @@ async function getSpelling(indexID) {
 let listenningChallengesChannel = "C01CDAFCQ3B";
 async function postSpelling() {
   try {
-    const { audio, number, transcript } = await getSpelling(null);
+    const {audio, number, transcript} = await getSpelling(null);
 
     await getAudioFileAxios(audio, "audio.mp3");
     let welcomeMessageList = [
@@ -1074,7 +1074,7 @@ function cleanText(textInput) {
 // ===========================================================SYNTAX CŨ CẦN MENTION==================================================
 app.event(
   "app_mention",
-  async ({ body, event, context, client, message, say }) => {
+  async ({body, event, context, client, message, say}) => {
     let {
       client_msg_id,
       text,
@@ -1146,7 +1146,7 @@ app.event(
         return;
       }
 
-      const { transcript } = await getSpelling(questionID);
+      const {transcript} = await getSpelling(questionID);
       getMark = await checkMark(
         cleanText(textSubmission),
         cleanText(transcript)
@@ -1224,7 +1224,7 @@ function displayCachelAll() {
 }
 
 ////////////=================================SYNTAX MỚI KHÔNG CẦN MENTION /=================================//////////////
-app.event("message", async ({ body, event, context, client, message, say }) => {
+app.event("message", async ({body, event, context, client, message, say}) => {
   let {
     client_msg_id,
     text,
@@ -1237,7 +1237,7 @@ app.event("message", async ({ body, event, context, client, message, say }) => {
     subtype,
   } = event;
 
-  let { channel_type, bot_id, parent_user_id } = message;
+  let {channel_type, bot_id, parent_user_id} = message;
 
   if (typeof subtype !== "undefined") {
     console.log(`subtype là ${subtype}`);
@@ -1315,7 +1315,7 @@ app.event("message", async ({ body, event, context, client, message, say }) => {
         return;
       }
 
-      const { transcript } = await getSpelling(questionID);
+      const {transcript} = await getSpelling(questionID);
       getMark = await checkMark(
         cleanText(textSubmission),
         cleanText(transcript)
@@ -1569,8 +1569,8 @@ app.event("message", async ({ body, event, context, client, message, say }) => {
 });
 
 /*=============================================================trust_amount========================================================*/
-app.event("message", async ({ body, event, context, client, message }) => {
-  let { user, ts, text, channel, channel_type, subtype, thread_ts, bot_id } =
+app.event("message", async ({body, event, context, client, message}) => {
+  let {user, ts, text, channel, channel_type, subtype, thread_ts, bot_id} =
     message;
 
   if (
@@ -1615,13 +1615,13 @@ app.event("message", async ({ body, event, context, client, message }) => {
   };
 
   if (depositChange(text)) {
-    let { sender, receiver, amount } = depositChange(text);
+    let {sender, receiver, amount} = depositChange(text);
 
     if (typeof cache.getKey(sender) !== "undefined") {
       if (receiver != "U02N47DMKRR") {
         console.log(
           "1392: Không process vì người receiver không phải Will, là : " +
-            receiver
+          receiver
         );
         return;
       }
@@ -1645,7 +1645,7 @@ app.event("message", async ({ body, event, context, client, message }) => {
 
         console.log(
           " 1423: Không có dữ liệu Cache, gửi request check_trust của: " +
-            sender
+          sender
         );
       } catch (error) {
         console.error(error);
@@ -1680,7 +1680,7 @@ app.event("message", async ({ body, event, context, client, message }) => {
   };
 
   if (takeCoin(text)) {
-    let { sender, receiver, amount } = takeCoin(text);
+    let {sender, receiver, amount} = takeCoin(text);
 
     if (typeof cache.getKey(sender) !== "undefined") {
       let currentAmount = Number(cache.getKey(sender));
@@ -1699,7 +1699,7 @@ app.event("message", async ({ body, event, context, client, message }) => {
 
         console.log(
           " 1465: Không có dữ liệu Cache khi trừ  coin, gửi request check_trust của: " +
-            sender
+          sender
         );
       } catch (error) {
         console.error(error);
@@ -1709,7 +1709,7 @@ app.event("message", async ({ body, event, context, client, message }) => {
 });
 
 //==========================================================GỬI TRANSCRIRIPT-==========================================================
-app.event("message", async ({ body, event, context, client, message, say }) => {
+app.event("message", async ({body, event, context, client, message, say}) => {
   let {
     client_msg_id,
     text,
@@ -1782,7 +1782,7 @@ app.event("message", async ({ body, event, context, client, message, say }) => {
   try {
     const questionID = await beeNumber();
 
-    let { transcript } = await getSpelling(questionID);
+    let {transcript} = await getSpelling(questionID);
     let transcriptClean = cleanText(transcript);
     const result = await client.chat.postMessage({
       channel: user,
@@ -1816,7 +1816,7 @@ app.event("message", async ({ body, event, context, client, message, say }) => {
 });
 
 /*===================================================================SENDING IPA AUDIO==============================================================*/
-app.event("message", async ({ body, event, context, client, message, say }) => {
+app.event("message", async ({body, event, context, client, message, say}) => {
   let {
     client_msg_id,
     text,
@@ -1932,7 +1932,7 @@ app.event("message", async ({ body, event, context, client, message, say }) => {
 });
 
 /*===================================================================RANDOM==============================================================*/
-app.event("message", async ({ body, event, context, client, message, say }) => {
+app.event("message", async ({body, event, context, client, message, say}) => {
   let {
     client_msg_id,
     text,
@@ -1975,9 +1975,8 @@ app.event("message", async ({ body, event, context, client, message, say }) => {
       if (typeof channel_type !== "undefined" && channel_type === "im") {
         const result = await client.chat.postMessage({
           channel: user,
-          text: `Hi <@${user}>, số ngẫu nhiên trong khoảng 0 tới 100 của bạn là ${
-            randomIndex(100) + 1
-          }`,
+          text: `Hi <@${user}>, số ngẫu nhiên trong khoảng 0 tới 100 của bạn là ${randomIndex(100) + 1
+            }`,
         });
 
         return;
@@ -1986,9 +1985,8 @@ app.event("message", async ({ body, event, context, client, message, say }) => {
       const result = await client.chat.postMessage({
         channel: channel,
         thread_ts: destination,
-        text: `Hi <@${user}>, số ngẫu nhiên trong khoảng 0 tới 100 của bạn là ${
-          randomIndex(100) + 1
-        }`,
+        text: `Hi <@${user}>, số ngẫu nhiên trong khoảng 0 tới 100 của bạn là ${randomIndex(100) + 1
+          }`,
       });
 
       console.log(result);
@@ -1999,7 +1997,7 @@ app.event("message", async ({ body, event, context, client, message, say }) => {
 });
 
 //////////////////=================================///////////TRANSLATION//////////////////=================================//////////////
-app.event("message", async ({ body, event, context, client, message, say }) => {
+app.event("message", async ({body, event, context, client, message, say}) => {
   let {
     client_msg_id,
     text,
@@ -2044,7 +2042,7 @@ app.event("message", async ({ body, event, context, client, message, say }) => {
       words,
     }
   ) => {
-    let { source, target, words } = options;
+    let {source, target, words} = options;
 
     const res = await axios({
       baseURL: endpoint,
@@ -2121,7 +2119,7 @@ app.event("message", async ({ body, event, context, client, message, say }) => {
 });
 
 ////////////////=================================/////////////ECHO RHYMES/////////////=================================///////////////////
-app.event("message", async ({ body, event, context, client, message, say }) => {
+app.event("message", async ({body, event, context, client, message, say}) => {
   let {
     client_msg_id,
     text,
@@ -2148,7 +2146,7 @@ app.event("message", async ({ body, event, context, client, message, say }) => {
 
   let soundWord = textArray[1];
 
-  let { rhymes, alliterations } = rhymesVietSpeak(soundWord);
+  let {rhymes, alliterations} = rhymesVietSpeak(soundWord);
 
   const rhy = rhymes.map((e) => {
     return e.word;
@@ -2196,7 +2194,7 @@ app.event("message", async ({ body, event, context, client, message, say }) => {
 });
 
 ////////////////=================================/////////////SEND AUDIO - TEXT TO SPEECH /////////////////=================================///////////////
-app.event("message", async ({ body, event, context, client, message, say }) => {
+app.event("message", async ({body, event, context, client, message, say}) => {
   let {
     client_msg_id,
     text,
@@ -2382,8 +2380,8 @@ app.event("message", async ({ body, event, context, client, message, say }) => {
 
 //////////////=================================///////////////CHECK ĐIỂM SỐ KHI REACT EMOJI ///////////////////////////=================================///////////////////////]
 
-app.event("reaction_added", async ({ event, context, say }) => {
-  let { type, user, item, reaction, item_user, event_ts } = event;
+app.event("reaction_added", async ({event, context, say}) => {
+  let {type, user, item, reaction, item_user, event_ts} = event;
 
   if (item.channel != "C01BY57F29H") {
     return;
@@ -2402,7 +2400,7 @@ app.event("reaction_added", async ({ event, context, say }) => {
       limit: 1000, // get the main thread only
     });
 
-    let { ts, thread_ts } = result.messages[0];
+    let {ts, thread_ts} = result.messages[0];
 
     //thread_ts khong co --> tuc dang trong main thread;
     if (typeof thread_ts === "undefined" || ts == thread_ts) {
@@ -2429,7 +2427,7 @@ app.event("reaction_added", async ({ event, context, say }) => {
         textFromVSB = textFromVietSpeakBot[0].text;
       }
 
-      let { title, transcription, vtt, url_private } = fileDetail[0];
+      let {title, transcription, vtt, url_private} = fileDetail[0];
 
       if (typeof transcription === "undefined") {
         return;
@@ -2554,9 +2552,8 @@ async function postPhoneticChallenge() {
     return;
   }
 
-  let textOuput = `phonetic-challenge-${
-    taoeba[randomIndexArray].index - 1
-  }.mp3`;
+  let textOuput = `phonetic-challenge-${taoeba[randomIndexArray].index - 1
+    }.mp3`;
 
   let listenningChallengesChannel = "C01CDAFCQ3B"; //"C01CDAFCQ3B"; //("G01BPHWQ023" --> ban thong tin) C01J9D8RMD3==> channel 14
 
@@ -2588,7 +2585,7 @@ const jobPostPhonetics = schedule.scheduleJob(rulePhonetics, function () {
 });
 
 /////////////////////////////TAOEBA PROJECT - CHECKING SUBMISION////////////////////////////////
-app.event("message", async ({ body, event, context, client, message, say }) => {
+app.event("message", async ({body, event, context, client, message, say}) => {
   let {
     client_msg_id,
     text,
@@ -2705,7 +2702,7 @@ app.event("message", async ({ body, event, context, client, message, say }) => {
 });
 
 /////////////////////////////=================================THANOS --> deleting the thread=================================////////////////////////////////
-app.event("message", async ({ body, event, context, client, message, say }) => {
+app.event("message", async ({body, event, context, client, message, say}) => {
   let {
     client_msg_id,
     text,
@@ -2797,7 +2794,7 @@ app.event("message", async ({ body, event, context, client, message, say }) => {
 ///////////////////////////////////////=================================KIWI DAP AN=================================/////////////////////////////////////
 app.event(
   "app_mention",
-  async ({ body, event, context, client, message, say }) => {
+  async ({body, event, context, client, message, say}) => {
     let {
       client_msg_id,
       text,
@@ -2853,7 +2850,7 @@ app.event(
 
     try {
       const questionID = await beeNumber();
-      let { transcript } = await getSpelling(questionID);
+      let {transcript} = await getSpelling(questionID);
       let transcriptClean = cleanText(transcript);
 
       // https://api.slack.com/methods/chat.postMessage/test --> nếu gửi dm cho user, thay channel bằng ID username U01C3SA99FW  (William)
@@ -2890,13 +2887,13 @@ app.event(
 
 // ===================================================OBJECTIVE TEST LISTENING TO ACTION --> WORK IN PROGRESS ===============================================
 
-app.action("block_actions", async ({ ack }) => {
+app.action("block_actions", async ({ack}) => {
   await ack();
 
   console.log("testing action click on button");
 });
 
-app.event("message", async ({ body, event, context, client, message }) => {
+app.event("message", async ({body, event, context, client, message}) => {
   let {
     user,
     ts,
@@ -2999,7 +2996,7 @@ const jobEndingTask = schedule.scheduleJob(ruleEndingTask, function () {
 /*============================================================================================================================*/
 app.event(
   "app_mention",
-  async ({ body, event, context, client, message, say }) => {
+  async ({body, event, context, client, message, say}) => {
     let {
       client_msg_id,
       text,
@@ -3049,7 +3046,7 @@ app.event(
 );
 
 /*======================================= SEND THE TRANSCRIPT  =====================================================*/
-app.event("message", async ({ body, event, context, client, message, say }) => {
+app.event("message", async ({body, event, context, client, message, say}) => {
   let {
     client_msg_id,
     text,
@@ -3086,7 +3083,7 @@ app.event("message", async ({ body, event, context, client, message, say }) => {
   }
 
   // let linkAPI = `https://api.vietspeak.org/v1/task/transcript.php`;
-  let linkAPI =`https://api.vuongnguyen.net/airtable/vietspeak_transcript.php`
+  let linkAPI = `https://api.vuongnguyen.net/airtable/vietspeak_transcript.php`
 
   const response = await axios.get(linkAPI);
 
@@ -3130,6 +3127,96 @@ app.event("message", async ({ body, event, context, client, message, say }) => {
   }
 });
 
+
+/*=========================Update 03/2023 SEND THE transcript automatically =================================*/
+// Should also implement the function comparing the vtt and the transcript added beforehand.
+function checkLevelTranscript(title = "", text = "") {
+  let level = ["yellow", "green", "blue", "red"];
+  if (typeof title !== "undefined") {
+    title = title.trim().toLowerCase();
+    let filter = level.filter((e) => title.includes(e));
+    if (filter.length === 1) {
+      return filter[0];
+    }
+  }
+
+  if (typeof text !== "undefined") {
+    text = text.trim().toLowerCase();
+    let filter = level.filter((e) => text.includes(e));
+    if (filter.length === 1) {
+      return filter[0];
+    }
+  }
+  return "yellow"; //if unknown
+}
+
+app.event("message", async ({body, event, context, client, message}) => {
+  let {subtype, files, thread_ts} = event;
+  let {user, ts, text, channel, channel_type} = message;
+
+  if (typeof channel_type === "undefined") {
+    console.log("không có channel_type");
+    return;
+  }
+
+  //if(development(user, event)) return;
+  if (
+    onlyHandleMainThreadEvent(thread_ts) ||
+    onlyHandlePublicEvent(channel_type) ||
+    onlyHandleIfUploadFile(files) ||
+    onlyHandleIfNotBot(user) ||
+    onlyHandleChannel2(channel) ||
+    onlyHandleIfNotDeletingEvent(subtype)
+  ) {
+    return;
+  }
+
+  let {
+    display_as_bot,
+    name,
+    url_private_download,
+    timestamp,
+    title,
+    filetype,
+    id,
+  } = files[0];
+
+  let color = checkLevelTranscript(title, text);
+
+  if (typeof display_as_bot !== "undefined" && display_as_bot) {
+    return;
+  }
+
+  if (typeof suptype !== "undefined") {
+    if (suptype === "message_deleted" || suptype === "message_changed") return;
+  }
+
+  let taskNumber = getCurrentTask(currentTimeStamp());
+
+  let link_trancript = `https://api.vuongnguyen.net/airtable/vietspeak_transcript.php?task=${taskNumber}`;
+  const response = await axios.get(link_trancript);
+  
+  let outputTranScript = response.data[0].fields[color];
+  if (typeof outputTranScript === "undefined") {
+    outputTranScript = "Hiện chưa có transcript trên api của hệ thống cho task hiện tại.!";
+  }
+  try {
+    await later(3000);
+    const result = await client.chat.postMessage({
+      channel: channel,
+      thread_ts: ts,
+      text: outputTranScript,
+    });
+    console.log(`Send the transcript task ${taskNumber} level ${color}`);
+    console.log("color", color);
+    console.log("title", title)
+    console.log("text", text)
+  } catch (error) {
+    console.error(error);
+  }
+});
+
+
 /*======================================= STORE USER TO DATABASE CLOUDANT NOSQL  =====================================================*/
 const createDbAndDoc = async (dbName, documentId, documentCreated) => {
   // Try to create database if it doesn't exist
@@ -3166,11 +3253,11 @@ const createDbAndDoc = async (dbName, documentId, documentCreated) => {
 
   console.log(
     "You have created the document:\n" +
-      JSON.stringify(documentCreated, null, 2)
+    JSON.stringify(documentCreated, null, 2)
   );
 };
 
-app.event("message", async ({ body, event, context, client, message, say }) => {
+app.event("message", async ({body, event, context, client, message, say}) => {
   let {
     client_msg_id,
     text,
@@ -3265,8 +3352,8 @@ app.event("message", async ({ body, event, context, client, message, say }) => {
 /*======================================= UPDATING USER EVENT  =====================================================*/
 app.event(
   "user_change",
-  async ({ body, event, context, client, message, say }) => {
-    let { id, deleted, real_name, name, updated } = event.user;
+  async ({body, event, context, client, message, say}) => {
+    let {id, deleted, real_name, name, updated} = event.user;
 
     let sayReturn;
 
@@ -3285,7 +3372,7 @@ app.event(
           })
         ).result;
 
-        let { user } = document;
+        let {user} = document;
         if (user.hasOwnProperty(userID)) {
           document.user[userID].deleted = deleted;
           document.user[userID].last_time_deactivated = updated;
@@ -3301,9 +3388,9 @@ app.event(
           ).result.rev;
           console.log(
             "=========== UPDATING USER IN THE DATABASE: ===========: " +
-              userID +
-              " - " +
-              real_name
+            userID +
+            " - " +
+            real_name
           );
         } else {
           let real_name_property = real_name ?? name;
@@ -3331,16 +3418,16 @@ app.event(
           ).result.rev;
           console.log(
             "=========== CREATING NEW USER IN THE DATABASE: ===========" +
-              userID +
-              " - " +
-              real_name
+            userID +
+            " - " +
+            real_name
           );
         }
       } catch (err) {
         if (err.code === 404) {
           console.log(
             `Cannot update document because either "${dbName}" database or the "document" ` +
-              `document was not found.`
+            `document was not found.`
           );
         }
       }
@@ -3360,7 +3447,7 @@ app.event(
 );
 
 /*======================================= ABOUT ME =====================================================*/
-app.event("message", async ({ body, event, context, client, message, say }) => {
+app.event("message", async ({body, event, context, client, message, say}) => {
   let {
     client_msg_id,
     text,
@@ -3405,7 +3492,7 @@ app.event("message", async ({ body, event, context, client, message, say }) => {
       docId: "vietspeak_user",
     };
     const documentAboutZebra = await clientcloudant.getDocument(getDocParams);
-    const { result } = documentAboutZebra;
+    const {result} = documentAboutZebra;
 
     console.log(result.user[userID]);
 
@@ -3430,9 +3517,8 @@ app.event("message", async ({ body, event, context, client, message, say }) => {
     if (followingList.length > 0) {
       followingList = followingList.map((e) => `<@${e}>`);
 
-      followingList = `\n\nBạn đang follow ${
-        followingList.length
-      } người: ${followingList.join(", ")}`;
+      followingList = `\n\nBạn đang follow ${followingList.length
+        } người: ${followingList.join(", ")}`;
     } else {
       followingList =
         "\n\nFollowing: 0. Hãy soạn follow và mention người bạn muốn follow. Soạn unfollow và mention nếu muốn dừng follow ai đó.";
@@ -3459,8 +3545,8 @@ app.event("message", async ({ body, event, context, client, message, say }) => {
 });
 
 /*======================================= UPDATING ANONYMOUS ID  =====================================================*/
-app.event("message", async ({ body, event, context, client, message, say }) => {
-  let { text, user, channel_type } = message;
+app.event("message", async ({body, event, context, client, message, say}) => {
+  let {text, user, channel_type} = message;
 
   // if(development(user, event)) return;
 
@@ -3482,7 +3568,7 @@ app.event("message", async ({ body, event, context, client, message, say }) => {
         })
       ).result;
 
-      let { user } = document;
+      let {user} = document;
 
       let listofID = [];
 
@@ -3535,8 +3621,8 @@ app.event("message", async ({ body, event, context, client, message, say }) => {
         }
         console.log(
           "=========== UPDATING annonymous ID IN THE DATABASE: ===========: " +
-            userID +
-            " - "
+          userID +
+          " - "
         );
       }
 
@@ -3545,7 +3631,7 @@ app.event("message", async ({ body, event, context, client, message, say }) => {
       if (err.code === 404) {
         console.log(
           `Cannot update document because either "${dbName}" database or the "document" ` +
-            `document was not found.`
+          `document was not found.`
         );
       }
     }
@@ -3576,8 +3662,8 @@ app.event("message", async ({ body, event, context, client, message, say }) => {
 
 // https://github.com/IBM/cloudant-node-sdk
 /*======================================= FOLLOWING, FOLLOWER =====================================================*/
-app.event("message", async ({ body, event, context, client, message, say }) => {
-  let { text, user, channel_type } = message;
+app.event("message", async ({body, event, context, client, message, say}) => {
+  let {text, user, channel_type} = message;
 
   // if(development(user, event)) return;
 
@@ -3631,7 +3717,7 @@ app.event("message", async ({ body, event, context, client, message, say }) => {
         })
       ).result;
 
-      let { user } = document;
+      let {user} = document;
 
       if (user.hasOwnProperty(userID)) {
         let listToFollow = validateAndGetFollowList(text);
@@ -3696,8 +3782,8 @@ app.event("message", async ({ body, event, context, client, message, say }) => {
 
         console.log(
           "=========== UPDATING FOLLOWING IN THE DATABASE: ===========: " +
-            userID +
-            " - "
+          userID +
+          " - "
         );
       }
       return resultDisplay;
@@ -3705,7 +3791,7 @@ app.event("message", async ({ body, event, context, client, message, say }) => {
       if (err.code === 404) {
         console.log(
           `Cannot update document because either "${dbName}" database or the "document" ` +
-            `document was not found.`
+          `document was not found.`
         );
       }
     }
@@ -3775,7 +3861,7 @@ const tracking_createOrupdateDocIfExist = async (
       })
     ).result;
 
-    let { userSumitted } = document;
+    let {userSumitted} = document;
 
     if (userSumitted.hasOwnProperty(user)) {
       document.userSumitted[user].level.push(dataUpdate[user].level[0]);
@@ -3812,7 +3898,7 @@ const tracking_createOrupdateDocIfExist = async (
     if (err.code === 404) {
       console.log(
         `Cannot update document because either "${dbName}" database or the "document" ` +
-          `document was not found.`
+        `document was not found.`
       );
     }
   }
@@ -3837,21 +3923,21 @@ const tracking_createNewTask = async (
     documentCreated._rev = createDocumentResponse.result.rev;
     console.log(
       "You have created the document:\n" +
-        JSON.stringify(documentCreated, null, 2)
+      JSON.stringify(documentCreated, null, 2)
     );
   } catch (err) {
     if (err.code === 404) {
       console.log(
         `Cannot update creat document because either "${dbName}" database or the "document" ` +
-          `document was not found.`
+        `document was not found.`
       );
     }
   }
 };
 
-app.event("message", async ({ body, event, context, client, message }) => {
-  let { subtype, files, thread_ts } = event;
-  let { user, ts, text, channel, channel_type } = message;
+app.event("message", async ({body, event, context, client, message}) => {
+  let {subtype, files, thread_ts} = event;
+  let {user, ts, text, channel, channel_type} = message;
 
   if (typeof channel_type === "undefined") {
     console.log("không có channel_type");
@@ -3921,7 +4007,7 @@ async function gettingDocsFromDatabase(dbName, docID) {
     docId: docID,
   };
   const documentAboutZebra = await clientcloudant.getDocument(getDocParams);
-  const { result } = documentAboutZebra;
+  const {result} = documentAboutZebra;
   return result;
 }
 
@@ -3932,10 +4018,10 @@ async function getUserDatabase(userId) {
 
 /*=================================================================VERIFYING USER'S SUBMISION  ===================================================================*/
 
-app.event("message", async ({ body, event, context, client, message }) => {
-  let { subtype, files, thread_ts } = event;
+app.event("message", async ({body, event, context, client, message}) => {
+  let {subtype, files, thread_ts} = event;
 
-  let { user, ts, text, channel, channel_type } = message;
+  let {user, ts, text, channel, channel_type} = message;
 
   if (typeof channel_type === "undefined") {
     console.log("không có channel_type");
@@ -3977,7 +4063,7 @@ async function getEmailFromUser(userID) {
   return email;
 }
 
-app.event("message", async ({ message, event }) => {
+app.event("message", async ({message, event}) => {
   let {
     user,
     ts,
@@ -4206,8 +4292,8 @@ async function postReportTaskList(destination, taskNumber) {
     notsubmitted = notsubmitted.map((e) => `<@${e}>`);
     notsubmitted = listMising
       ? `Danh sách ${totalnotsubmitted} quý khách *\`lỡ xe\`*:  ${notsubmitted.join(
-          ", "
-        )}`
+        ", "
+      )}`
       : "";
 
     /*===============cô tấm===============*/
@@ -4382,10 +4468,10 @@ async function postReportTaskList(destination, taskNumber) {
   }
 }
 
-app.event("message", async ({ body, event, context, client, message }) => {
-  let { subtype, files, thread_ts } = event;
+app.event("message", async ({body, event, context, client, message}) => {
+  let {subtype, files, thread_ts} = event;
 
-  let { user, ts, text, channel, channel_type } = message;
+  let {user, ts, text, channel, channel_type} = message;
 
   if (typeof channel_type === "undefined") {
     return;
@@ -4508,10 +4594,10 @@ const jobruleReportWarning = schedule.scheduleJob(
 );
 
 /*=================================================================NOTIFY FOLLOWER =============================================================*/
-app.event("message", async ({ body, event, context, client, message }) => {
-  let { subtype, files, thread_ts } = event;
+app.event("message", async ({body, event, context, client, message}) => {
+  let {subtype, files, thread_ts} = event;
   //console.log(event);
-  let { user, ts, text, channel, channel_type } = message;
+  let {user, ts, text, channel, channel_type} = message;
 
   if (
     onlyHandleMainThreadEvent(thread_ts) ||
@@ -4524,7 +4610,7 @@ app.event("message", async ({ body, event, context, client, message }) => {
     return;
   }
 
-  let { name, title } = files[0];
+  let {name, title} = files[0];
 
   let color = getLevel(title, text);
   if (color === "unknown") {
@@ -4543,7 +4629,7 @@ app.event("message", async ({ body, event, context, client, message }) => {
     }
   }
 
-  let { permalink } = await getMessageLink();
+  let {permalink} = await getMessageLink();
   let currentTaskNow = getCurrentTask(currentTimeStamp());
   let userInfo = await getUserDatabase(user);
 
@@ -4564,8 +4650,8 @@ app.event("message", async ({ body, event, context, client, message }) => {
 });
 
 /*======================================= VOLUNTEER =====================================================*/
-app.event("message", async ({ body, event, context, client, message, say }) => {
-  let { text, user, channel_type } = message;
+app.event("message", async ({body, event, context, client, message, say}) => {
+  let {text, user, channel_type} = message;
 
   if (onlyHandleIfIM(channel_type)) return;
 
@@ -4580,7 +4666,7 @@ app.event("message", async ({ body, event, context, client, message, say }) => {
         })
       ).result;
 
-      let { user } = document;
+      let {user} = document;
 
       let listofID = [];
 
@@ -4612,15 +4698,15 @@ app.event("message", async ({ body, event, context, client, message, say }) => {
 
         console.log(
           "=========== UPDATING annonymous ID IN THE DATABASE: ===========: " +
-            userID +
-            " - "
+          userID +
+          " - "
         );
       }
     } catch (err) {
       if (err.code === 404) {
         console.log(
           `Cannot update document because either "${dbName}" database or the "document" ` +
-            `document was not found.`
+          `document was not found.`
         );
       }
     }
