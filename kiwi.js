@@ -3147,7 +3147,7 @@ function checkLevelTranscript(title = "", text = "") {
       return filter[0];
     }
   }
-  return "yellow"; //if unknown
+  return false; //"yellow"; //if unknown
 }
 
 app.event("message", async ({body, event, context, client, message}) => {
@@ -3165,7 +3165,7 @@ app.event("message", async ({body, event, context, client, message}) => {
     onlyHandlePublicEvent(channel_type) ||
     onlyHandleIfUploadFile(files) ||
     onlyHandleIfNotBot(user) ||
-    onlyHandleChannel2(channel) ||
+    // onlyHandleChannel2(channel) ||
     onlyHandleIfNotDeletingEvent(subtype)
   ) {
     return;
@@ -3178,8 +3178,12 @@ app.event("message", async ({body, event, context, client, message}) => {
     timestamp,
     title,
     filetype,
+    transcription,
     id,
+    vtt,
   } = files[0];
+
+  console.log("file", files[0])
 
   let color = checkLevelTranscript(title, text);
 
@@ -3196,10 +3200,14 @@ app.event("message", async ({body, event, context, client, message}) => {
   let link_trancript = `https://api.vuongnguyen.net/airtable/vietspeak_transcript.php?task=${taskNumber}`;
   const response = await axios.get(link_trancript);
   
-  let outputTranScript = response.data[0].fields[color];
-  if (typeof outputTranScript === "undefined") {
-    outputTranScript = "Hiện chưa có transcript trên api của hệ thống cho task hiện tại.!";
+  let outputTranScript;
+  
+  if(color){
+    outputTranScript = response.data[0].fields[color];    
+  }else{
+    outputTranScript = `Tên file và bài đăng không chứa từ khóa level. Bạn có thể nhập "yellow", "green", "blue hoặc "red" để lấy transcript.!`;  
   }
+    
   try {
     await later(3000);
     const result = await client.chat.postMessage({
@@ -3211,10 +3219,13 @@ app.event("message", async ({body, event, context, client, message}) => {
     console.log("color", color);
     console.log("title", title)
     console.log("text", text)
+    console.log("transcription", transcription);
+    console.log("vtt", vtt);
   } catch (error) {
     console.error(error);
   }
 });
+
 
 
 /*======================================= STORE USER TO DATABASE CLOUDANT NOSQL  =====================================================*/
