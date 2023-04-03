@@ -3085,7 +3085,8 @@ app.event("message", async ({ body, event, context, client, message, say }) => {
     return;
   }
 
-  let linkAPI = `https://api.vietspeak.org/v1/task/transcript.php`;
+  // let linkAPI = `https://api.vietspeak.org/v1/task/transcript.php`;
+  let linkAPI =`https://api.vuongnguyen.net/airtable/vietspeak_transcript.php`
 
   const response = await axios.get(linkAPI);
 
@@ -3123,7 +3124,7 @@ app.event("message", async ({ body, event, context, client, message, say }) => {
       as_user: true,
     });
 
-    console.log(`Adding the transcript by ${user}`);
+    console.log(`Transcript added by ${user}`);
   } catch (error) {
     console.error(error);
   }
