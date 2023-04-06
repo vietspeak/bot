@@ -3135,7 +3135,7 @@ function checkLevelTranscript(title = "", text = "") {
   if (typeof title !== "undefined") {
     title = title.trim().toLowerCase();
     let filter = level.filter((e) => title.includes(e));
-    if (filter.length === 1) {
+    if (filter.length >= 1) {
       return filter[0];
     }
   }
@@ -3143,7 +3143,7 @@ function checkLevelTranscript(title = "", text = "") {
   if (typeof text !== "undefined") {
     text = text.trim().toLowerCase();
     let filter = level.filter((e) => text.includes(e));
-    if (filter.length === 1) {
+    if (filter.length >= 1) {
       return filter[0];
     }
   }
@@ -3165,7 +3165,7 @@ app.event("message", async ({body, event, context, client, message}) => {
     onlyHandlePublicEvent(channel_type) ||
     onlyHandleIfUploadFile(files) ||
     onlyHandleIfNotBot(user) ||
-    // onlyHandleChannel2(channel) ||
+    onlyHandleChannel2(channel) ||
     onlyHandleIfNotDeletingEvent(subtype)
   ) {
     return;
@@ -3205,7 +3205,7 @@ app.event("message", async ({body, event, context, client, message}) => {
   if(color){
     outputTranScript = response.data[0].fields[color];    
   }else{
-    outputTranScript = `Tên file và bài đăng không chứa từ khóa level. Bạn có thể nhập "yellow", "green", "blue hoặc "red" để lấy transcript.!`;  
+    outputTranScript = `Tên file và bài đăng không chứa từ khóa level. Bạn có thể nhập "yellow", "green", "blue hoặc "red" để lấy transcript tự động.!`;  
   }
     
   try {
