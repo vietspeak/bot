@@ -1816,7 +1816,14 @@ app.event("message", async ({body, event, context, client, message, say}) => {
 });
 
 /*===================================================================SENDING IPA AUDIO==============================================================*/
-app.event("message", async ({body, event, context, client, message, say}) => {
+app.event("message", async ({
+  body,
+  event,
+  context,
+  client,
+  message,
+  say
+}) => {
   let {
     client_msg_id,
     text,
@@ -1866,47 +1873,63 @@ app.event("message", async ({body, event, context, client, message, say}) => {
 
     return nonEmpty[1];
   };
-
-  if (isCheckIpa(textSubmission)) {
-    let words = isCheckIpa(textSubmission);
-
-    try {
-      let destination;
-
-      if (typeof thread_ts === "undefined") {
-        destination = ts;
+  
+//   -----------------------------------------
+function convertIPA(inputText) {
+    if (inputText.length === 0) return;  
+    inputText = inputText.trim().toLowerCase();  
+    inputText = cleanTextToCompare(inputText);  
+    inputText = inputText.split(" ");  
+    let ipaList = open_ipa.en_US[0];  
+    let ipaConverted = [];
+  
+    for (let item in inputText) {
+      if (ipaList[inputText[item]] === undefined) {
+        ipaConverted.push(inputText[item]);
       } else {
-        destination = thread_ts;
+        ipaConverted.push(ipaList[inputText[item]]);
       }
+    }
+  
+    let final = ipaConverted.join(" ");
+    const slash = /[\/]+/gim;
+    final = final.replace(slash, "");
+  
+    const same = /, +/gim;
+    final = final.replace(same, "|");
+  
+    return final;
+  }
 
+// -----------------------------------------
+
+if (isCheckIpa(textSubmission)) {
+  let words = isCheckIpa(textSubmission);
+  
+  let ipa_sending = convertIPA(words)
+
+  try {
+    let destination;
+
+    if (typeof thread_ts === "undefined") {
+      destination = ts;
+    } else {
+      destination = thread_ts;
+    }
+
+    // không gửi reply khi gửi tin nhắn cho người dùng
+    if (typeof channel_type !== "undefined" && channel_type === "im") {
+      destination = user;
+    }
+
+    const file = `${__dirname}/data/audio/us/us/${words}.mp3`;
+
+    if (!fs.existsSync(file)) {
       // không gửi reply khi gửi tin nhắn cho người dùng
       if (typeof channel_type !== "undefined" && channel_type === "im") {
-        destination = user;
-      }
-
-      const file = `${__dirname}/data/audio/us/us/${words}.mp3`;
-
-      if (!fs.existsSync(file)) {
-        // không gửi reply khi gửi tin nhắn cho người dùng
-        if (typeof channel_type !== "undefined" && channel_type === "im") {
-          const result = await client.chat.postMessage({
-            channel: user,
-            text: `Hi <@${user}>, hiện chưa có file audio của từ ${words}. <@U01C3SA99FW> is notified. Sorry!`,
-          });
-
-          const notifyresult = await client.chat.postMessage({
-            channel: `U01C3SA99FW`,
-            text: `<@${user}> tìm audio từ ${words} nhưng không có trong hệ thống!!`,
-          });
-
-          return;
-        }
-
-        console.log("Không có file, từ: " + words);
         const result = await client.chat.postMessage({
-          channel: channel,
-          thread_ts: destination,
-          text: `Hi <@${user}>, hiện chưa có file audio của từ ${words}. <@U01C3SA99FW> is notified. Sorry!`,
+          channel: user,
+          text: `${words}: /${ipa_sending}/, hi <@${user}>, hiện chưa có file audio của từ ${words}. <@U01C3SA99FW> is notified. Sorry!`,
         });
 
         const notifyresult = await client.chat.postMessage({
@@ -1917,21 +1940,35 @@ app.event("message", async ({body, event, context, client, message, say}) => {
         return;
       }
 
-      const result = await client.files.upload({
-        channels: channel, //----> channels có s khi up load file
+      console.log("Không có file, từ: " + words);
+      const result = await client.chat.postMessage({
+        channel: channel,
         thread_ts: destination,
-        initial_comment: 'Your IPA',
-        filename: `${words}.mp3`,
-        file: fs.createReadStream(file),
+        text: `${words}: /${ipa_sending}/, hi <@${user}>, hiện chưa có file audio của từ ${words}. <@U01C3SA99FW> is notified. Sorry!`,
       });
-      //   console.log(result);
-      console.log("send api file");
-    } catch (error) {
-      console.error(error);
-    }
-  }
-});
 
+      const notifyresult = await client.chat.postMessage({
+        channel: `U01C3SA99FW`,
+        text: `<@${user}> tìm audio từ ${words} nhưng không có trong hệ thống!!`,
+      });
+
+      return;
+    }
+
+    const result = await client.files.upload({
+      channels: channel, //----> channels có s khi up load file
+      thread_ts: destination,
+      initial_comment: `${words}: /${ipa_sending}/`,
+      filename: `${words}.mp3`,
+      file: fs.createReadStream(file),
+    });
+    //   console.log(result);
+    console.log("send api file");
+  } catch (error) {
+    console.error(error);
+  }
+}
+});
 /*===================================================================RANDOM==============================================================*/
 app.event("message", async ({body, event, context, client, message, say}) => {
   let {
