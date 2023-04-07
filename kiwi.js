@@ -1920,6 +1920,7 @@ app.event("message", async ({body, event, context, client, message, say}) => {
       const result = await client.files.upload({
         channels: channel, //----> channels có s khi up load file
         thread_ts: destination,
+        initial_comment: 'Your IPA',
         filename: `${words}.mp3`,
         file: fs.createReadStream(file),
       });
