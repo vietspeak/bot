@@ -1929,7 +1929,7 @@ if (isCheckIpa(textSubmission)) {
       if (typeof channel_type !== "undefined" && channel_type === "im") {
         const result = await client.chat.postMessage({
           channel: user,
-          text: `${words}: /${ipa_sending}/, hi <@${user}>, hiện chưa có file audio của từ ${words}. <@U01C3SA99FW> is notified. Sorry!`,
+          text: `${words}: /${ipa_sending}/, hi <@${user}>, hiện chưa có file audio của từ ${words}!`,
         });
 
         const notifyresult = await client.chat.postMessage({
@@ -1944,7 +1944,7 @@ if (isCheckIpa(textSubmission)) {
       const result = await client.chat.postMessage({
         channel: channel,
         thread_ts: destination,
-        text: `${words}: /${ipa_sending}/, hi <@${user}>, hiện chưa có file audio của từ ${words}. <@U01C3SA99FW> is notified. Sorry!`,
+        text: `${words}: /${ipa_sending}/, hi <@${user}>, hiện chưa có file audio của từ ${words}.!`,
       });
 
       const notifyresult = await client.chat.postMessage({
